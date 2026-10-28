@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roadpulse — ИИ-поиск дефектов дорог</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--asp:#1a2126;--asp2:#242d33;--sand:#eadfc8;--mark:#f6c915;--sea:#2aa6a0;--red:#e5533d;--ink:#10161a;--fs:clamp(18px,1.15vw,26px)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font:400 var(--fs)/1.5 Manrope,system-ui,sans-serif;background:var(--asp);color:#f2ede0;overflow-x:hidden}
+h1,h2,h3{font-family:Unbounded,Manrope,sans-serif;font-weight:900;letter-spacing:-.02em;line-height:1.05}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--mark);outline-offset:3px}
+#prog{position:fixed;top:0;left:0;height:6px;width:0;z-index:60;background:repeating-linear-gradient(90deg,var(--mark) 0 24px,transparent 24px 36px)}
+nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:16px 3vw}
+.logo{font:900 1.15em Unbounded;display:flex;gap:10px;align-items:center;text-decoration:none}
+.logo i{width:16px;height:16px;background:var(--mark);display:block;border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
+nav ul{display:flex;gap:2.2vw;list-style:none;background:rgba(26,33,38,.75);backdrop-filter:blur(10px);padding:10px 28px;border-radius:99px}
+nav ul a{text-decoration:none;font-weight:600;font-size:.85em}
+nav ul a:hover{color:var(--mark)}
+.lang{display:flex;background:rgba(26,33,38,.75);backdrop-filter:blur(10px);border-radius:99px;padding:4px}
+.lang button{background:none;border:0;color:#fff;font:800 .8em Manrope;padding:8px 16px;border-radius:99px;cursor:pointer}
+.lang button.on{background:var(--mark);color:var(--ink)}
+section{position:relative;padding:7vh 3vw}
+/* hero */
+#hero{min-height:100vh;padding:14vh 3vw 6vh;display:grid;grid-template-columns:1fr 1.15fr;gap:3vw;align-items:center;background:radial-gradient(70vw 60vh at 85% 30%,#2aa6a033,transparent),radial-gradient(50vw 50vh at 0 100%,#f6c91522,transparent),var(--asp)}
+h1{font-size:clamp(56px,9vw,200px);line-height:.95}
+h1 .p{background:linear-gradient(90deg,var(--mark),var(--sea));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 span{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.1em}
+h1 em{display:block;font-style:normal;transform:translateY(110%);animation:up 1s cubic-bezier(.2,.8,.2,1) forwards}
+h1 span+span em{animation-delay:.15s}
+@keyframes up{to{transform:none}}
+.bar{height:10px;width:min(14vw,260px);background:linear-gradient(90deg,var(--mark),var(--sea));border-radius:9px;margin:3vh 0;animation:grow 1s .6s both}
+@keyframes grow{from{width:0}}
+.goal{background:#ffffff12;border:1px solid #ffffff22;border-radius:22px;padding:2.2vh 2vw;font-size:1.3em;margin-bottom:4vh;backdrop-filter:blur(8px);opacity:0;animation:fade 1s .8s forwards}
+@keyframes fade{to{opacity:1}}
+.btn{display:inline-block;background:var(--mark);color:var(--ink);font:800 1em Manrope;padding:18px 34px;border-radius:99px;text-decoration:none;border:0;cursor:pointer;transition:transform .25s}
+.btn:hover{transform:scale(1.06) rotate(-1.5deg)}
+.btn.ghost{background:transparent;color:#fff;border:2px solid #fff6;margin-left:10px}
+.lapw{perspective:1600px}
+.lap{position:relative;border:12px solid #0a0e10;border-bottom-width:26px;border-radius:24px;aspect-ratio:16/10;overflow:hidden;box-shadow:0 40px 90px #000a,0 0 0 2px #ffffff18;transform:rotateY(-6deg) rotateX(2deg);animation:float 6s ease-in-out infinite alternate}
+@keyframes float{to{transform:rotateY(-2deg) rotateX(0) translateY(-10px)}}
+.vid{position:absolute;inset:0;background:var(--asp2);overflow:hidden}
+.vid::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(100deg,#2b353c 0 80px,#222b31 80px 160px);animation:slide 6s linear infinite}
+.vid::after{content:"";position:absolute;left:0;right:0;top:55%;height:8px;background:repeating-linear-gradient(90deg,var(--mark) 0 70px,transparent 70px 140px);animation:slide 2s linear infinite;opacity:.6}
+@keyframes slide{to{transform:translateX(-160px)}}
+.vid video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.lap .tag{position:absolute;z-index:4;top:0;left:0;background:#0a0e10dd;padding:6px 18px;font-weight:800;font-size:.8em;border-radius:0 0 12px 0}
+.lap .foot{position:absolute;z-index:4;left:0;right:0;bottom:0;background:linear-gradient(0deg,#000d,transparent);padding:24px 18px 10px;font-weight:800;font-size:.95em}
+.dots{position:absolute;z-index:4;right:14px;top:12px;display:flex;gap:6px}
+.dots i{width:10px;height:10px;border-radius:50%;background:#fff5;transition:.3s}.dots i.on{background:var(--mark);transform:scale(1.3)}
+.box{position:absolute;z-index:3;border:3px solid var(--red);border-radius:6px;animation:drift 6s ease-in-out infinite alternate}
+.box b{position:absolute;top:-26px;left:-3px;background:var(--red);color:#fff;font:800 .65em Manrope;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.box.m{border-color:var(--mark)}.box.m b{background:var(--mark);color:var(--ink)}
+@keyframes drift{to{transform:translate(2vw,-1.5vh) scale(1.08)}}
+.tick{background:var(--mark);color:var(--ink);overflow:hidden;white-space:nowrap;padding:16px 0;transform:rotate(-1.2deg);margin:0 -2vw;position:relative;z-index:5}
+.tick div{display:inline-block;font:900 1.6em Unbounded;animation:mq 30s linear infinite}
+.tick span{margin:0 28px}
+@keyframes mq{to{transform:translateX(-50%)}}
+.light{background:var(--sand);color:var(--ink)}
+.prob{display:grid;grid-template-columns:1.3fr 1fr;gap:4vw;align-items:center;min-height:75vh}
+h2{font-size:clamp(34px,4.6vw,100px);margin-bottom:3vh}
+.prob p{font-size:1.3em;max-width:34em}
+.stats{display:grid;gap:2vh}
+.stat{background:var(--ink);color:var(--sand);border-radius:28px;padding:3vh 2.5vw;display:flex;align-items:baseline;gap:1.5vw}
+.stat:nth-child(2){margin-left:4vw;background:var(--sea);color:var(--ink)}
+.stat:nth-child(3){margin-left:8vw;background:var(--red);color:#fff}
+.stat b{font:900 clamp(48px,5.5vw,120px) Unbounded;line-height:1}
+.stat span{font-weight:600}
+/* carousels */
+.big97{display:inline-block;background:var(--mark);color:var(--ink);font:900 clamp(20px,2.2vw,48px) Unbounded;padding:1.6vh 2vw;border-radius:99px;margin-bottom:4vh;transform:rotate(-1deg)}
+.row{margin-bottom:3.5vh}
+.row h3{font-size:1.3em;margin-bottom:1.4vh}
+.vp{overflow:hidden;padding:4px 0;-webkit-mask:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);mask:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent)}
+.trk{display:flex;width:max-content;animation:mq 40s linear infinite}
+.trk.rv{animation-direction:reverse;animation-duration:48s}
+.vp:hover .trk{animation-play-state:paused}
+.ph{position:relative;flex:none;width:18.6vw;aspect-ratio:4/3;margin-right:1vw;border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#323d44,#1f272c)}
+.ph::before{content:"";position:absolute;left:0;right:0;top:55%;height:6px;background:repeating-linear-gradient(90deg,var(--mark) 0 40px,transparent 40px 80px);opacity:.5}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.ph figcaption{position:absolute;z-index:2;left:12px;bottom:10px;font-weight:800;font-size:.85em;text-shadow:0 2px 10px #000}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:1.2vw;counter-reset:s}
+.step{border-top:6px solid var(--ink);padding-top:2vh;counter-increment:s;transition:transform .4s}
+.step:hover{transform:translateY(-10px)}
+.step::before{content:counter(s);font:900 4.5vw Unbounded;color:var(--red);display:block;line-height:1}
+.step h3{font-size:1.35em;margin:1.5vh 0 1vh}
+.step p{opacity:.8;font-size:.95em}
+/* kazakhstan */
+.kz{display:grid;grid-template-columns:.8fr 1.4fr;gap:3vw;align-items:center;min-height:70vh}
+.kz p{font-size:1.3em;max-width:30em}
+.kz>div:first-child{transform:translateY(-7vh) scale(1.08);transform-origin:left center}
+#kz{width:100%;height:auto;shape-rendering:geometricPrecision;filter:drop-shadow(0 20px 40px #0008)}
+#kz text{fill:#f2ede0;font:700 12px Manrope;paint-order:stroke;stroke:#10161a;stroke-width:3px;stroke-linejoin:round}
+.rt{fill:none;stroke:var(--mark);stroke-width:1.6;stroke-dasharray:6 6;animation:dash 1.2s linear infinite;opacity:.8}
+@keyframes dash{to{stroke-dashoffset:-12}}
+.pu{fill:none;stroke:var(--sea);stroke-width:1.5;transform-box:fill-box;transform-origin:center;animation:pulse 2.2s ease-out infinite}
+@keyframes pulse{from{transform:scale(1);opacity:.9}to{transform:scale(3.2);opacity:0}}
+.mg{animation:glow 2s ease-in-out infinite alternate}
+@keyframes glow{to{fill-opacity:1}}
+/* dashboard */
+#demo{background:var(--asp2)}
+.dash{display:grid;grid-template-columns:1fr 1.25fr .95fr;gap:1.2vw;min-height:84vh;align-items:stretch}
+.panel{background:var(--asp);border-radius:26px;padding:1.6vw;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel h3{font-size:1.05em}
+.drop{flex:1;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:3px dashed #ffffff40;border-radius:22px;padding:22px;text-align:center;cursor:pointer;transition:.3s;font-weight:800;background:#ffffff08}
+.drop svg{width:72px;height:72px;stroke:var(--mark);fill:none;stroke-width:1.6;animation:bob 2s ease-in-out infinite alternate}
+@keyframes bob{to{transform:translateY(-8px)}}
+.drop small{font-weight:400;opacity:.65}
+.drop:hover,.drop.on{border-color:var(--mark);background:#f6c91512}
+.drop.sm{flex:none;min-height:0;flex-direction:row;padding:10px;font-size:.85em}.drop.sm svg{width:30px;height:30px}.drop.sm small{display:none}
+canvas{width:100%;border-radius:16px;background:#111;display:none}
+canvas.show{display:block}
+.res{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pill{padding:6px 16px;border-radius:99px;font-weight:800;font-size:.85em;color:var(--ink)}
+.hi{background:var(--red);color:#fff}.mid{background:var(--mark)}.lo{background:var(--sea)}
+#map{flex:1;min-height:60vh;border-radius:18px;z-index:1;background:#1d252a;display:grid;place-items:center}
+.qw{position:relative;flex:1;min-height:320px}
+.q{position:absolute;inset:0;list-style:none;display:flex;flex-direction:column;gap:10px;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
+.q::-webkit-scrollbar{display:none}
+.q li{display:grid;grid-template-columns:60px 1fr 116px;gap:12px;align-items:center;background:var(--asp2);padding:12px 14px;border-radius:16px;cursor:pointer;flex:none;border:2px solid transparent}
+.q li:hover{border-color:var(--mark)}
+.q .sc{font:900 1.15em Unbounded;text-align:center;border-radius:12px;padding:10px 0;background:#ffffff0d}
+.q .nm{font-weight:800;line-height:1.25}
+.q small{display:block;opacity:.7;font-size:.78em;margin-top:2px}
+select{width:100%;background:var(--asp);color:#fff;border:1px solid #fff4;border-radius:10px;padding:8px;font:inherit;font-size:.78em}
+.note{font-size:.75em;opacity:.55}
+/* footer */
+footer{background:var(--asp);border-top:10px solid var(--mark);padding:8vh 3vw 3vh}
+.fg{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.2fr;gap:3vw}
+.fg h4{font:900 .8em Unbounded;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3vh}
+.fg li{list-style:none;margin-bottom:2vh;opacity:.8}
+.fg p{opacity:.75;max-width:22em;margin:2vh 0}
+.soc{display:flex;gap:12px}
+.soc a{width:52px;height:52px;border-radius:50%;border:1px solid #fff3;display:grid;place-items:center;font-weight:800;text-decoration:none;transition:.3s}
+.soc a:hover{background:var(--mark);color:var(--ink)}
+.fb{display:flex;justify-content:space-between;gap:2vw;flex-wrap:wrap;border-top:1px solid #fff2;margin-top:5vh;padding-top:3vh;opacity:.7;font-size:.85em}
+.fb span+span{margin-left:3vw}
+[data-r]{opacity:0;transition:opacity .9s,transform 1s cubic-bezier(.2,.8,.2,1)}
+[data-r=up]{transform:translateY(70px)}[data-r=left]{transform:translateX(-120px)}[data-r=right]{transform:translateX(120px)}
+[data-r=clip]{transform:translateX(-60px)}[data-r=pop]{transform:scale(.8) rotate(-3deg)}
+[data-r].in{opacity:1;transform:none}
+@media(max-width:1000px){#hero,.prob,.dash,.steps,.kz,.fg{grid-template-columns:1fr}nav ul{display:none}.ph{width:60vw}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}[data-r]{opacity:1;transform:none}h1 em{transform:none}.goal{opacity:1}}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<nav><a class="logo" href="#hero"><i></i>Roadpulse</a>
+<ul><li><a href="#problem" data-t>Проблема</a></li><li><a href="#how" data-t>Как работает</a></li><li><a href="#demo" data-t>Демо</a></li><li><a href="#contacts" data-t>Контакты</a></li></ul>
+<div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="kz">KZ</button><button data-l="en">EN</button></div></nav>
+
+<section id="hero">
+  <div>
+    <h1><span><em>Road</em></span><span><em class="p">pulse</em></span></h1>
+    <div class="bar"></div>
+    <div class="goal" data-t>ИИ находит ямы и трещины на фото, оценивает опасность и выстраивает очередь ремонта на карте области.</div>
+    <a class="btn" href="#demo" data-t>Попробовать на фото</a><a class="btn ghost" href="#how" data-t>Как это работает</a>
+  </div>
+  <div class="lapw"><div class="lap">
+    <div class="vid"><video id="hv" autoplay muted loop playsinline src="videos/road1.mp4"></video></div>
+    <div class="tag" data-t>Живые кадры с дорог</div><div class="dots" id="dots"></div>
+    <div class="box" style="left:12%;top:48%;width:22%;height:16%"><b><span data-t>Яма</span> · 94%</b></div>
+    <div class="box m" style="left:44%;top:56%;width:28%;height:9%;animation-delay:-2s"><b><span data-t>Трещина</span> · 87%</b></div>
+    <div class="box" style="left:70%;top:36%;width:14%;height:12%;animation-delay:-4s"><b><span data-t>Выбоина</span> · 91%</b></div>
+    <div class="foot">Roadpulse · 97%</div>
+  </div></div>
+</section>
+<div class="tick"><div id="tk"></div></div>
+
+<section id="problem" class="light">
+  <div class="prob">
+    <div>
+      <h2 data-r="clip" data-t>Невидимая яма стоит дороже видимой</h2>
+      <p data-r="up" data-t>Ямы, трещины и просадки остаются незамеченными, пока не станут аварией. Ручной объезд дорог Мангистауской области — это сотни километров, время и ресурсы. Мы автоматизируем поиск проблемных участков и расставляем приоритеты ремонта.</p>
+    </div>
+    <div class="stats">
+      <div class="stat" data-r="right"><b data-n="100">0</b><span data-t>% участков можно проверять по фото, а не выездом</span></div>
+      <div class="stat" data-r="right"><b data-n="3">0</b><span data-t>уровня опасности: высокий, средний, низкий</span></div>
+      <div class="stat" data-r="right"><b data-n="5">0</b><span data-t>шагов от снимка до заявки на ремонт</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="see">
+  <h2 data-r="left" data-t>Что видит система</h2>
+  <div class="big97" data-r="pop" data-t>Roadpulse распознаёт 97% всех дорожных проблем</div>
+  <div id="rows"></div>
+</section>
+
+<section id="how" class="light">
+  <h2 data-r="clip" data-t>Пять шагов от снимка до ремонта</h2>
+  <div class="steps">
+    <div class="step" data-r="up"><h3 data-t>Загрузка фото</h3><p data-t>Инспектор или житель загружает снимок повреждённого участка.</p></div>
+    <div class="step" data-r="up" style="transition-delay:.12s"><h3 data-t>Распознавание</h3><p data-t>Модель компьютерного зрения находит ямы, трещины и другие дефекты.</p></div>
+    <div class="step" data-r="up" style="transition-delay:.24s"><h3 data-t>Оценка серьёзности</h3><p data-t>Система присваивает предварительный приоритет проверки.</p></div>
+    <div class="step" data-r="up" style="transition-delay:.36s"><h3 data-t>Карта повреждений</h3><p data-t>Дефекты отображаются на карте, если есть координаты.</p></div>
+    <div class="step" data-r="up" style="transition-delay:.48s"><h3 data-t>Список заявок</h3><p data-t>Упорядоченная очередь для планирования инспекций и ремонта.</p></div>
+  </div>
+</section>
+
+<section id="kzs">
+  <div class="kz">
+    <div><h2 data-r="clip" data-t>Roadpulse применим по всему Казахстану</h2>
+    <p data-r="up" data-t>Мы начинаем с Мангистауской области и масштабируем систему на дороги всех регионов: от магистралей между крупными городами до сельских дорог.</p></div>
+    <svg id="kz" viewBox="0 0 640 380" data-r="pop"></svg>
+  </div>
+</section>
+
+<section id="demo">
+  <h2 data-r="left" data-t>Рабочая панель: загрузите снимок</h2>
+  <div class="dash">
+    <div class="panel" data-r="up">
+      <h3 data-t>1. Фото дороги</h3>
+      <label class="drop" id="drop" tabindex="0">
+        <svg viewBox="0 0 64 64"><path d="M32 44V16M20 28l12-12 12 12M10 44v8h44v-8"/></svg>
+        <span data-t>Перетащите фото сюда</span><small data-t>или нажмите, чтобы выбрать</small>
+        <input id="file" type="file" accept="image/*" hidden></label>
+      <canvas id="cv" width="800" height="520"></canvas>
+      <button class="btn" id="sample" style="padding:12px 20px" data-t>Взять демо-снимок</button>
+      <div class="res" id="res"><span class="note" data-t>Результат анализа появится здесь</span></div>
+      <p class="note" data-t>Демо: распознавание сейчас заглушка (detectDefects в коде), на её место подключается обученная модель.</p>
+    </div>
+    <div class="panel" data-r="up" style="transition-delay:.15s"><h3 data-t>2. Карта повреждений · Мангистауская область</h3><div id="map"></div></div>
+    <div class="panel" data-r="up" style="transition-delay:.3s"><h3 data-t>3. Очередь проверки</h3><div class="qw"><ul class="q" id="q"></ul></div></div>
+  </div>
+</section>
+
+<footer id="contacts">
+  <div class="fg">
+    <div><a class="logo" href="#hero"><i></i>Roadpulse</a><p data-t>Roadpulse — ИИ для безопасных дорог Казахстана.</p>
+      <div class="soc"><a href="#">in</a><a href="#">ig</a><a href="#">f</a></div></div>
+    <div><h4 data-t>Разделы</h4><ul><li data-t>О проекте</li><li data-t>Команда</li><li data-t>Карта</li><li data-t>Демо</li></ul></div>
+    <div><h4 data-t>Решение</h4><ul><li data-t>Распознавание дефектов</li><li data-t>Приоритеты ремонта</li><li data-t>Управление заявками</li></ul></div>
+    <div><h4 data-t>Контакты</h4><ul><li>info@roadpulse.kz</li><li>+7 (000) 000-00-00</li><li data-t>Адрес: [заглушка]</li></ul></div>
+  </div>
+  <div class="fb"><span>© 2026 Roadpulse. <span data-t>Все права защищены.</span></span><div><span data-t>Политика конфиденциальности</span><span data-t>Условия использования</span></div></div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// ---------- переводы: ru | kz | en ----------
+const T={kz:{},en:{}};
+`Проблема|Мәселе|Problem
+Как работает|Қалай жұмыс істейді|How it works
+Демо|Демо|Demo
+Контакты|Байланыс|Contacts
+ИИ находит ямы и трещины на фото, оценивает опасность и выстраивает очередь ремонта на карте области.|ЖИ суреттегі шұңқыр мен жарықтарды табады, қауіптілікті бағалайды және облыс картасында жөндеу кезегін құрады.|AI finds potholes and cracks in photos, rates the danger and builds a repair queue on the region's map.
+Попробовать на фото|Суретпен байқап көру|Try it on a photo
+Как это работает|Бұл қалай жұмыс істейді|How it works
+Живые кадры с дорог|Жолдардан түсірілген кадрлар|Live road footage
+Яма|Шұңқыр|Pothole
+Трещина|Жарық|Crack
+Выбоина|Ойық|Pit
+Сетка трещин|Жарықтар торы|Crack network
+Просадка|Шөгу|Subsidence
+Невидимая яма стоит дороже видимой|Көрінбейтін шұңқыр көрінетінінен қымбатқа түседі|An unseen pothole costs more than a seen one
+Ямы, трещины и просадки остаются незамеченными, пока не станут аварией. Ручной объезд дорог Мангистауской области — это сотни километров, время и ресурсы. Мы автоматизируем поиск проблемных участков и расставляем приоритеты ремонта.|Шұңқыр, жарық пен шөгулер апатқа айналмайынша байқалмай қалады. Маңғыстау облысының жолдарын қолмен аралау — жүздеген шақырым, уақыт пен ресурс. Біз проблемалы учаскелерді іздеуді автоматтандырып, жөндеу басымдығын белгілейміз.|Potholes, cracks and subsidence go unnoticed until they cause a crash. Inspecting Mangystau's roads by hand means hundreds of kilometers, time and resources. We automate the search for problem sections and prioritize repairs.
+% участков можно проверять по фото, а не выездом|% учаскені шықпай, сурет арқылы тексеруге болады|% of sections can be checked from a photo, not a site visit
+уровня опасности: высокий, средний, низкий|қауіп деңгейі: жоғары, орташа, төмен|danger levels: high, medium, low
+шагов от снимка до заявки на ремонт|суреттен жөндеу өтінімі аралығындағы қадам|steps from photo to repair request
+Что видит система|Жүйе нені көреді|What the system sees
+Roadpulse распознаёт 97% всех дорожных проблем|Roadpulse жол мәселелерінің 97%-ын таниды|Roadpulse detects 97% of all road problems
+Ямы|Шұңқырлар|Potholes
+Трещины|Жарықтар|Cracks
+Разрушенное покрытие|Бұзылған жабын|Broken surface
+Пять шагов от снимка до ремонта|Суреттен жөндеуге дейінгі бес қадам|Five steps from photo to repair
+Загрузка фото|Фото жүктеу|Upload a photo
+Инспектор или житель загружает снимок повреждённого участка.|Инспектор немесе тұрғын зақымдалған учаске суретін жүктейді.|An inspector or resident uploads a photo of the damaged section.
+Распознавание|Тану|Detection
+Модель компьютерного зрения находит ямы, трещины и другие дефекты.|Компьютерлік көру моделі шұңқыр, жарық және басқа ақауларды табады.|A computer vision model finds potholes, cracks and other defects.
+Оценка серьёзности|Қауіптілікті бағалау|Severity rating
+Система присваивает предварительный приоритет проверки.|Жүйе тексерудің алдын ала басымдығын белгілейді.|The system assigns a preliminary inspection priority.
+Карта повреждений|Зақымдану картасы|Damage map
+Дефекты отображаются на карте, если есть координаты.|Координаттар болса, ақаулар картада көрсетіледі.|Defects appear on the map when coordinates are available.
+Список заявок|Өтінімдер тізімі|Request list
+Упорядоченная очередь для планирования инспекций и ремонта.|Тексеру мен жөндеуді жоспарлауға арналған реттелген кезек.|An ordered queue for planning inspections and repairs.
+Roadpulse применим по всему Казахстану|Roadpulse бүкіл Қазақстанда қолданылады|Roadpulse works across all of Kazakhstan
+Мы начинаем с Мангистауской области и масштабируем систему на дороги всех регионов: от магистралей между крупными городами до сельских дорог.|Біз Маңғыстау облысынан бастаймыз және жүйені барлық өңір жолдарына таратамыз: ірі қалалар арасындағы тасжолдардан ауыл жолдарына дейін.|We start in Mangystau and scale the system to every region: from highways between major cities to rural roads.
+Мангистау · пилот|Маңғыстау · пилот|Mangystau · pilot
+Астана|Астана|Astana
+Алматы|Алматы|Almaty
+Шымкент|Шымкент|Shymkent
+Атырау|Атырау|Atyrau
+Актобе|Ақтөбе|Aktobe
+Караганда|Қарағанды|Karaganda
+Павлодар|Павлодар|Pavlodar
+Усть-Каменогорск|Өскемен|Oskemen
+Рабочая панель: загрузите снимок|Жұмыс панелі: суретті жүктеңіз|Workspace: upload a photo
+1. Фото дороги|1. Жол суреті|1. Road photo
+Перетащите фото сюда|Суретті осы жерге сүйреңіз|Drag a photo here
+или нажмите, чтобы выбрать|немесе таңдау үшін басыңыз|or click to choose
+Взять демо-снимок|Демо-суретті алу|Use a demo photo
+Результат анализа появится здесь|Талдау нәтижесі осында шығады|Analysis results appear here
+Демо: распознавание сейчас заглушка (detectDefects в коде), на её место подключается обученная модель.|Демо: тану қазір жасанды үлгі, оның орнына оқытылған модель қосылады.|Demo: detection is a stub for now; a trained model plugs in here.
+2. Карта повреждений · Мангистауская область|2. Зақымдану картасы · Маңғыстау облысы|2. Damage map · Mangystau region
+3. Очередь проверки|3. Тексеру кезегі|3. Inspection queue
+Анализируем…|Талдаудамыз…|Analyzing…
+Приоритет|Басымдық|Priority
+Найдено|Табылды|Found
+Высокий|Жоғары|High
+Средний|Орташа|Medium
+Низкий|Төмен|Low
+Новая|Жаңа|New
+В работе|Жұмыста|In progress
+Исправлена|Жөнделді|Fixed
+Карта недоступна без интернета|Интернетсіз карта қолжетімсіз|The map needs an internet connection
+Актау – Жанаозен|Ақтау – Жаңаөзен|Aktau – Zhanaozen
+Жанаозен – Бейнеу|Жаңаөзен – Бейнеу|Zhanaozen – Beineu
+Актау – Форт-Шевченко|Ақтау – Форт-Шевченко|Aktau – Fort-Shevchenko
+Актау – Шетпе|Ақтау – Шетпе|Aktau – Shetpe
+км|км|km
+Новый снимок|Жаңа сурет|New photo
+Roadpulse — ИИ для безопасных дорог Казахстана.|Roadpulse — Қазақстанның қауіпсіз жолдарына арналған ЖИ.|Roadpulse — AI for safer roads in Kazakhstan.
+Разделы|Бөлімдер|Sections
+О проекте|Жоба туралы|About
+Команда|Команда|Team
+Карта|Карта|Map
+Решение|Шешім|Solution
+Распознавание дефектов|Ақауларды тану|Defect detection
+Приоритеты ремонта|Жөндеу басымдығы|Repair priorities
+Управление заявками|Өтінімдерді басқару|Request management
+Адрес: [заглушка]|Мекенжайы: [толтырылады]|Address: [to be added]
+Все права защищены.|Барлық құқықтар қорғалған.|All rights reserved.
+Политика конфиденциальности|Құпиялылық саясаты|Privacy policy
+Условия использования|Пайдалану шарттары|Terms of use`.split('\n').forEach(l=>{const [r,k,e]=l.split('|');T.kz[r]=k;T.en[r]=e});
+let lang='ru';const t=s=>(T[lang]&&T[lang][s])||s;
+
+// ---------- фото-карусели ----------
+// КАК РЕДАКТИРОВАТЬ ФОТО:
+//  1) Каждый список ниже — одна карусель (Ямы / Трещины / Разрушенное покрытие).
+//  2) Чтобы заменить фото — поменяйте ссылку в кавычках на свою: либо файл из папки рядом с index.html
+//     (например 'photos/pothole1.jpg'), либо ссылку на картинку из интернета (https://...).
+//  3) Чтобы добавить фото — допишите ещё одну ссылку в конец нужного списка через запятую.
+//     Чтобы убрать — удалите ссылку вместе с запятой.
+//  4) Если файл не найден или ссылка не открывается, на его месте автоматически показывается
+//     нарисованная иллюстрация нужного типа дефекта (пустых карточек не будет).
+const WM='https://commons.wikimedia.org/wiki/Special:FilePath/'; // фото с Wikimedia Commons (свободные лицензии)
+const PHOTOS={
+ // ---- ЯМЫ ----
+ 'Ямы':[
+  WM+'Pothole_in_Villeray,_Montr%C3%A9al.jpg?width=900',
+  WM+'Large_pot_hole_on_2nd_Avenue_in_New_York_City.JPG?width=900',
+  WM+'Potholes_-_at_the_junction_of_Philip_Lane_N15_and_Mount_Pleasant_Road_N17.jpg?width=900',
+  'photos/pit1.jpeg',
+  'photos/pit2.jpeg',
+  'photos/pit3.jpeg',
+
+ ],
+ // ---- ТРЕЩИНЫ ---- (вставьте свои: 'photos/crack1.jpg', ...)
+ 'Трещины':[
+  WM+'Asphalt_deterioration.jpg?width=900',
+  'photos/crack1.jpeg',
+  'photos/crack2.jpeg',
+  'photos/crack3.jpeg',
+  'photos/crack4.jpeg'
+ ],
+//  // ---- РАЗРУШЕННОЕ ПОКРЫТИЕ ---- (вставьте свои: 'photos/broken1.jpg', ...)
+//  'Разрушенное покрытие':[
+//   'photos/broken1.jpg',
+//   'photos/broken2.jpg',
+//   'photos/broken3.jpg',
+//   'photos/broken4.jpg',
+//   'photos/broken5.jpg'
+// 
+//]
+};
+// запасная иллюстрация, если фото не загрузилось (рисуется кодом, ничего скачивать не нужно)
+function art(k,j){
+ const r=(n)=>{let x=Math.sin((j+1)*97+n*31)*10000;return x-Math.floor(x)};
+ let g='';
+ if(k==='Ямы'){for(let i=0;i<2+j%2;i++){const cx=90+r(i)*220,cy=110+r(i+5)*90,rx=34+r(i+9)*34,ry=rx*.5;
+   g+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx+7}" ry="${ry+5}" fill="#5a636a"/><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#0d1113"/><ellipse cx="${cx-6}" cy="${cy-3}" rx="${rx*.6}" ry="${ry*.5}" fill="#1c2327"/>`}}
+ else if(k==='Трещины'){for(let i=0;i<3;i++){let x=20+r(i)*80,y=40+r(i+3)*220,p=`M${x},${y}`;for(let n=0;n<9;n++){x+=28+r(n+i)*18;y+=(r(n+i*7)-.5)*46;p+=` L${x.toFixed(0)},${y.toFixed(0)}`}
+   g+=`<path d="${p}" stroke="#0d1113" stroke-width="${3-i*.6}" fill="none" stroke-linejoin="round"/>`}}
+ else{for(let i=0;i<14;i++){const x=r(i)*340+10,y=r(i+20)*230+30,w=26+r(i+40)*44,h=18+r(i+60)*30;
+   g+=`<polygon points="${x},${y} ${x+w},${y+5} ${x+w-8},${y+h} ${x+4},${y+h-6}" fill="${i%3?'#2a3237':'#0d1113'}" stroke="#6a747b" stroke-width="1.5"/>`}}
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><filter id="n"><feTurbulence baseFrequency=".8" numOctaves="2" seed="${j+3}"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .22 0"/></filter></defs><rect width="400" height="300" fill="#3a4147"/><rect width="400" height="300" filter="url(#n)"/>${g}</svg>`;
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
+window.__art=art;
+document.getElementById('rows').innerHTML=Object.entries(PHOTOS).map(([k,a],i)=>{
+  const f=a.concat(a).map((s,j)=>`<figure class="ph"><img src="${s}" alt="${k}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=__art(this.closest('.row').dataset.k,${j%a.length})"><figcaption data-t="${k}">${k}</figcaption></figure>`).join('');
+  return `<div class="row" data-k="${k}" data-r="up"><h3 data-t="${k}">${k}</h3><div class="vp"><div class="trk ${i%2?'rv':''}">${f}</div></div></div>`}).join('');
+
+// ---------- видео в «ноутбуке» ----------
+const clips=['videos/','videos/road2.mp4','videos/road3.mp4','videos/road4.mp4'],hv=document.getElementById('hv'),dots=document.getElementById('dots');let ci=0;
+dots.innerHTML=clips.map(()=>'<i></i>').join('');
+function setClip(){[...dots.children].forEach((d,i)=>d.classList.toggle('on',i==ci));hv.loop=false;hv.src=clips[ci];hv.play().catch(()=>{})}
+hv.onended=()=>{ci=(ci+1)%clips.length;setClip()};hv.onerror=()=>{};
+setInterval(()=>{ci=(ci+1)%clips.length;setClip()},7000);setClip();
+
+// ---------- карта Казахстана ----------
+// Контур построен по реальным координатам границ (долгота, широта), проекция сжимает долготу как на настоящей карте.
+(function(){
+ const P=(lo,la)=>[(lo-46)*14.45+22,(55.9-la)*21.6+20].map(v=>v.toFixed(1)),pts=a=>a.map(p=>P(...p).join(',')).join(' ');
+ const out=[[49.2,46.5],[48.5,46.8],[47.7,47.1],[47.0,47.6],[46.6,48.2],[46.5,48.7],[46.8,49.3],[46.9,49.9],[47.4,50.3],[48.2,50.5],[48.9,50.7],[49.7,51.1],[50.6,51.6],[51.6,51.7],[52.6,51.5],[53.6,51.4],[54.6,50.9],[55.6,50.6],[56.4,51.0],[57.4,51.2],[58.4,51.1],[59.4,50.6],[60.4,50.7],[61.4,50.8],[61.6,51.4],[60.6,52.0],[60.9,52.8],[61.3,53.4],[62.1,53.9],[63.2,54.0],[64.3,54.4],[65.4,54.6],[66.4,54.5],[67.5,55.0],[68.5,55.4],[69.6,55.3],[70.6,55.0],[71.4,54.6],[72.2,54.2],[73.3,53.8],[74.6,54.0],[75.6,54.1],[76.8,54.1],[77.8,53.4],[78.6,52.9],[79.2,52.0],[80.1,51.5],[81.0,51.2],[82.0,50.7],[83.0,51.0],[84.0,50.8],[84.9,50.2],[85.3,49.6],[86.4,49.8],[87.3,49.1],[86.7,48.5],[85.8,48.4],[85.6,47.8],[85.5,47.1],[84.7,47.0],[83.9,46.9],[83.0,47.2],[82.9,46.6],[82.4,46.0],[82.3,45.3],[81.4,45.2],[80.6,45.0],[80.1,44.8],[80.4,44.2],[80.3,43.2],[80.2,42.2],[79.3,42.5],[78.4,42.9],[77.5,43.0],[76.6,43.0],[75.6,42.9],[74.7,43.2],[73.8,43.1],[73.0,42.8],[72.5,42.9],[71.6,42.8],[71.0,42.8],[70.9,42.3],[70.3,42.1],[69.5,41.5],[68.7,41.0],[68.0,41.1],[67.3,41.8],[66.5,42.0],[66.0,42.0],[65.0,42.6],[64.2,43.2],[63.0,43.6],[62.0,43.8],[61.1,44.2],[60.0,44.6],[59.0,45.2],[58.4,45.6],[57.5,45.5],[56.6,45.2],[56.0,44.9],[56.0,44.0],[56.0,43.0],[56.0,42.0],[55.95,41.3],[55.0,41.45],[54.8,42.0],[54.1,42.35],[53.4,42.2],[52.8,42.0],[52.4,42.5],[52.0,42.9],[51.7,43.2],[51.15,43.65],[50.8,44.0],[50.35,44.35],[50.3,44.7],[50.6,44.9],[51.2,44.9],[51.8,45.2],[52.3,45.5],[52.9,45.8],[53.1,46.3],[52.5,46.6],[51.8,46.8],[51.0,46.9],[50.2,46.7],[49.6,46.5]];
+ const mg=[[52.8,42.0],[52.4,42.5],[52.0,42.9],[51.7,43.2],[51.15,43.65],[50.8,44.0],[50.35,44.35],[50.3,44.7],[50.6,44.9],[51.2,44.9],[51.8,45.2],[52.3,45.5],[52.9,45.8],[53.6,45.9],[54.6,46.0],[55.5,45.5],[56.0,44.9],[56.0,44.0],[56.0,43.0],[56.0,42.0],[55.95,41.3],[55.0,41.45],[54.8,42.0],[54.1,42.35],[53.4,42.2],[52.8,42.0]];
+ const ak=P(51.15,43.65),city=[['Астана',71.4,51.1],['Алматы',76.9,43.25],['Шымкент',69.6,42.3],['Атырау',51.9,47.1],['Актобе',57.2,50.3],['Караганда',73.1,49.8],['Павлодар',76.95,52.3],['Усть-Каменогорск',82.6,49.95]];
+ let s=`<polygon points="${pts(out)}" fill="#2b363d" stroke="#eadfc8" stroke-width="2" stroke-linejoin="round"/><polygon class="mg" points="${pts(mg)}" fill="#f6c915" fill-opacity=".6" stroke="#f6c915" stroke-width="1" stroke-linejoin="round"/>`;
+ city.forEach(([n,lo,la],i)=>{const [x,y]=P(lo,la),cx=(+ak[0]+ +x)/2,cy=Math.min(ak[1],y)-30-i*3,d=`M${ak[0]},${ak[1]} Q${cx},${cy} ${x},${y}`;
+  s+=`<path class="rt" d="${d}"/><circle r="3" fill="#f6c915"><animateMotion dur="${3+i*.5}s" repeatCount="indefinite" path="${d}"/></circle><circle class="pu" cx="${x}" cy="${y}" r="4" style="animation-delay:${i*.3}s"/><circle cx="${x}" cy="${y}" r="4" fill="#eadfc8"/><text x="${+x+8}" y="${+y+4}" data-t="${n}">${n}</text>`});
+ s+=`<circle class="pu" cx="${ak[0]}" cy="${ak[1]}" r="6" style="stroke:#f6c915"/><circle cx="${ak[0]}" cy="${ak[1]}" r="6" fill="#f6c915"/><text x="${ak[0]-10}" y="${+ak[1]+24}" style="fill:#f6c915;font-size:14px" data-t="Мангистау · пилот">Мангистау · пилот</text>`;
+ document.getElementById('kz').innerHTML=s})();
+
+// ---------- язык, прокрутка, счётчики ----------
+const words=['Яма','Трещина','Выбоина','Просадка','Сетка трещин'];
+const tk=document.getElementById('tk');
+function ticker(){tk.innerHTML=words.map(w=>`<span>${t(w)} ✦</span>`).join('').repeat(5)}
+function applyLang(l){lang=l;document.documentElement.lang=l;
+ document.querySelectorAll('[data-t]').forEach(e=>{e.dataset.k??=(e.dataset.t||e.textContent).trim();e.textContent=t(e.dataset.k)});
+ document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.l==l));
+ ticker();render();renderRes()}
+document.getElementById('lang').onclick=e=>e.target.dataset.l&&applyLang(e.target.dataset.l);
+
+const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;
+  e.target.classList.add('in');
+  const n=e.target.querySelector('[data-n]');
+  if(n){const to=+n.dataset.n;let t0=null;const f=x=>{t0??=x;const p=Math.min((x-t0)/1400,1);n.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
+  if(e.target.querySelector('#map'))[300,1300].forEach(d=>setTimeout(fit,d));
+  io.unobserve(e.target);
+}),{threshold:0,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('[data-r]').forEach(el=>io.observe(el));
+// страховка: если что-то уже на экране, но не проявилось, показываем принудительно
+function revealVisible(){document.querySelectorAll('[data-r]:not(.in)').forEach(el=>{const r=el.getBoundingClientRect();if(r.top<innerHeight*.94&&r.bottom>0){el.classList.add('in');const n=el.querySelector('[data-n]');if(n&&n.textContent==='0')n.textContent=n.dataset.n}})}
+addEventListener('scroll',revealVisible,{passive:true});addEventListener('load',()=>setTimeout(revealVisible,400));
+const prog=document.getElementById('prog');
+addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(scrollY/(h.scrollHeight-innerHeight)*100)+'%'},{passive:true});
+
+// ---------- карта повреждений (по дорогам Мангистау) ----------
+const routes=[['Актау – Жанаозен',230,[[43.65,51.15],[43.55,51.9],[43.45,52.4],[43.35,52.86]]],['Жанаозен – Бейнеу',290,[[43.35,52.86],[44.2,53.9],[45.31,55.2]]],['Актау – Форт-Шевченко',120,[[43.65,51.15],[44.1,50.6],[44.51,50.26]]],['Актау – Шетпе',160,[[43.65,51.15],[44.17,52.12]]]];
+const colors={hi:'#e5533d',mid:'#f6c915',lo:'#2aa6a0'},lvl=s=>s>=70?'hi':s>=40?'mid':'lo',lname={hi:'Высокий',mid:'Средний',lo:'Низкий'};
+const tp=['Яма','Трещина','Выбоина','Сетка трещин','Просадка'];
+let map=null,layer=null;const items=[];
+function fit(){if(map){map.invalidateSize();map.fitBounds([[43.2,50.2],[45.4,55.4]],{padding:[20,20]})}}
+if(window.L){
+ map=L.map('map',{zoomControl:true,preferCanvas:true}).setView([44,52.5],8);
+ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:18}).addTo(map);
+ routes.forEach(r=>L.polyline(r[2],{color:'#ffffff',weight:3,opacity:.35,dashArray:'6 8'}).addTo(map));
+ layer=L.layerGroup().addTo(map);
+ addEventListener('resize',fit);addEventListener('load',fit);
+}else document.getElementById('map').innerHTML='<span class="note" data-t>Карта недоступна без интернета</span>';
+function place(o){return t(routes[o.r][0])+' · '+o.km+' '+t('км')}
+function addItem(o){
+  o.level=lvl(o.score);o.st=o.st||0;
+  if(map)o.marker=L.circleMarker([o.lat,o.lng],{radius:8,color:'#fff',weight:2,fillColor:colors[o.level],fillOpacity:.95}).addTo(layer).bindPopup(()=>`<b>${o.isNew?t('Новый снимок')+' · ':''}${place(o)}</b><br>${o.types.map(t).join(', ')}<br>${t('Приоритет')}: ${o.score}`);
+  items.push(o);
+}
+function render(){
+  items.sort((a,b)=>b.score-a.score);
+  document.getElementById('q').innerHTML=items.map((o,i)=>`<li data-i="${i}"><div class="sc" style="color:${colors[o.level]}">${o.score}</div><div class="nm">${o.isNew?t('Новый снимок')+' · ':''}${place(o)}<small>${o.types.map(t).join(', ')} · ${t(lname[o.level])}</small></div>
+  <select data-s="${i}">${['Новая','В работе','Исправлена'].map((s,k)=>`<option value="${k}" ${o.st==k?'selected':''}>${t(s)}</option>`).join('')}</select></li>`).join('');
+}
+document.getElementById('q').addEventListener('click',e=>{
+  const s=e.target.closest('select');if(s)return;
+  const li=e.target.closest('li');if(!li)return;
+  const o=items[+li.dataset.i];if(map){map.flyTo([o.lat,o.lng],12);o.marker.openPopup()}
+});
+document.getElementById('q').addEventListener('change',e=>{if(e.target.dataset.s!=null)items[+e.target.dataset.s].st=+e.target.value});
+// случайные (демо) точки вдоль дорог, сид фиксирован
+let sd=11;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
+function onRoute(ri){const [,len,w]=routes[ri],sg=Math.floor(rnd()*(w.length-1)),f=rnd(),a=w[sg],b=w[sg+1];
+  return{r:ri,km:Math.round((sg+f)/(w.length-1)*len),lat:a[0]+(b[0]-a[0])*f+(rnd()-.5)*.012,lng:a[1]+(b[1]-a[1])*f+(rnd()-.5)*.012}}
+routes.forEach((_,ri)=>{for(let i=0;i<11;i++){const p=onRoute(ri),n=1+Math.floor(rnd()*2);
+  addItem({...p,score:Math.round(10+rnd()*88),types:[...new Set(Array.from({length:n},()=>tp[Math.floor(rnd()*5)]))]})}});
+
+// ---------- ЗАГЛУШКА ИИ-модели ----------
+// TODO: заменить на реальный вызов, например:
+// const r = await fetch('/api/detect',{method:'POST',body:formData}); return await r.json();
+// Формат: [{type:'Яма', conf:0.93, x,y,w,h}] в долях изображения (0..1)
+async function detectDefects(img){
+  await new Promise(r=>setTimeout(r,900));
+  const n=2+Math.floor(Math.random()*3);
+  return Array.from({length:n},()=>({type:tp[Math.floor(Math.random()*4)],conf:.78+Math.random()*.2,x:.05+Math.random()*.6,y:.3+Math.random()*.4,w:.12+Math.random()*.2,h:.08+Math.random()*.15}));
+}
+function severity(d){const wt={'Яма':1,'Выбоина':.9,'Сетка трещин':.7,'Трещина':.45};
+  return Math.min(100,Math.round(d.reduce((s,b)=>s+(wt[b.type]||.5)*Math.sqrt(b.w*b.h)*b.conf*190,0)))}
+
+// ---------- загрузка и анализ ----------
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),res=document.getElementById('res'),drop=document.getElementById('drop'),file=document.getElementById('file');
+let last=null;
+function renderRes(){
+  if(last==='busy')res.innerHTML=`<span class="pill mid">${t('Анализируем…')}</span>`;
+  else if(last)res.innerHTML=`<span class="pill ${last.l}">${t('Приоритет')}: ${t(lname[last.l])} · ${last.s}</span><span>${t('Найдено')}: ${last.n}</span><span class="note">${last.types.map(t).join(', ')}</span>`;
+}
+async function analyze(img){
+  cv.classList.add('show');drop.classList.add('sm');
+  const k=Math.min(cv.width/img.width,cv.height/img.height),w=img.width*k,h=img.height*k,ox=(cv.width-w)/2,oy=(cv.height-h)/2;
+  ctx.fillStyle='#111';ctx.fillRect(0,0,cv.width,cv.height);ctx.drawImage(img,ox,oy,w,h);
+  last='busy';renderRes();
+  const d=await detectDefects(img);
+  ctx.lineWidth=4;ctx.font='700 20px Manrope';
+  d.forEach(b=>{const x=ox+b.x*w,y=oy+b.y*h,bw=b.w*w,bh=b.h*h,tx=`${t(b.type)} ${Math.round(b.conf*100)}%`;ctx.strokeStyle='#e5533d';ctx.strokeRect(x,y,bw,bh);ctx.fillStyle='#e5533d';ctx.fillRect(x,y-26,ctx.measureText(tx).width+14,26);ctx.fillStyle='#fff';ctx.fillText(tx,x+7,y-6)});
+  const s=severity(d),types=[...new Set(d.map(b=>b.type))];
+  last={l:lvl(s),s,n:d.length,types};renderRes();
+  // координаты: при наличии GPS/EXIF подставляются реальные; в демо — случайная точка на дороге
+  const p=onRoute(Math.floor(Math.random()*routes.length));
+  addItem({...p,score:s,types,isNew:true});render();
+  if(map){map.flyTo([p.lat,p.lng],11);const it=items.find(o=>o.isNew&&o.lat===p.lat);it&&setTimeout(()=>it.marker.openPopup(),1200)}
+}
+function load(f){const img=new Image();img.onload=()=>analyze(img);img.src=URL.createObjectURL(f)}
+file.onchange=()=>file.files[0]&&load(file.files[0]);
+drop.addEventListener('keydown',e=>e.key==='Enter'&&file.click());
+['dragenter','dragover'].forEach(x=>drop.addEventListener(x,e=>{e.preventDefault();drop.classList.add('on')}));
+['dragleave','drop'].forEach(x=>drop.addEventListener(x,e=>{e.preventDefault();drop.classList.remove('on')}));
+drop.addEventListener('drop',e=>e.dataTransfer.files[0]&&load(e.dataTransfer.files[0]));
+document.getElementById('sample').onclick=()=>{
+  const c=document.createElement('canvas');c.width=800;c.height=520;const g=c.getContext('2d');
+  g.fillStyle='#3a4147';g.fillRect(0,0,800,520);
+  for(let i=0;i<9000;i++){g.fillStyle=`rgba(${Math.random()*90|0},${Math.random()*90|0},${Math.random()*90|0},.35)`;g.fillRect(Math.random()*800,Math.random()*520,2,2)}
+  g.fillStyle='#e8d36a';for(let x=0;x<800;x+=120)g.fillRect(x,255,70,10);
+  [[200,330,120,70],[520,300,90,50]].forEach(([x,y,w,h])=>{g.fillStyle='#14181b';g.beginPath();g.ellipse(x,y,w/2,h/2,.2,0,7);g.fill()});
+  const img=new Image();img.onload=()=>analyze(img);img.src=c.toDataURL();
+};
+applyLang('ru');
+</script>
+</body>
+</html>
