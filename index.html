@@ -142,7 +142,7 @@ canvas.show{display:block}
 .q .sc{font:900 1.15em Unbounded;text-align:center;border-radius:12px;padding:10px 0;background:#ffffff0d}
 .q .nm{font-weight:800;line-height:1.25}
 .q small{display:block;opacity:.7;font-size:.78em;margin-top:2px}
-select{width:100%;background:var(--asp);color:#fff;border:1px solid #fff4;border-radius:10px;padding:8px;font:inherit;font-size:.78em}
+.stt{justify-self:stretch;text-align:center;padding:7px 10px;border-radius:99px;font-weight:800;font-size:.72em;border:1px solid #fff3;color:#cfd6da;white-space:nowrap}.stt.s1{background:#f6c91522;color:var(--mark);border-color:var(--mark)}.stt.s2{background:#2aa6a022;color:var(--sea);border-color:var(--sea)}
 .note{font-size:.75em;opacity:.55}
 /* footer */
 footer{background:var(--asp);border-top:10px solid var(--mark);padding:8vh 3vw 3vh}
@@ -202,11 +202,12 @@ nav.open .burger span:first-child{transform:translateY(4px) rotate(45deg)}nav.op
  .big97{border-radius:24px;transform:none}
  .stat{flex-direction:column;gap:6px;padding:20px}
  .steps{grid-template-columns:1fr}
- .q li{grid-template-columns:52px 1fr}.q select{grid-column:1/-1}
+ .q li{grid-template-columns:52px 1fr}.q .stt{grid-column:1/-1;justify-self:start;padding:6px 18px}
  .mhint{display:none}.mleg{gap:10px;padding:6px 12px}
  .fg{grid-template-columns:1fr}.fb{flex-direction:column}.fb span+span{margin-left:0}
  .tick div{font-size:1.2em}
 }
+@media(max-width:800px),(hover:none) and (pointer:coarse){.qw{min-height:0}.q{position:static;overflow:visible;max-height:none;inset:auto}}
 @media(max-width:420px){.lang button{padding:7px 11px}.logo{font-size:1em}.ph{width:76vw}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}[data-r]{opacity:1;transform:none}h1 em{transform:none}.goal{opacity:1}}
 </style>
@@ -535,7 +536,7 @@ mapEl.innerHTML=`<svg id="ms" xmlns="${NS}"><defs><linearGradient id="sg" gradie
 <rect x="-4000" y="-4000" width="9000" height="9000" fill="url(#sg)"/>
 <g transform="scale(${S})"><polygon points="${OUTS}" fill="none" stroke="#f6c915" stroke-opacity=".16" stroke-width="7" stroke-linejoin="round"/><polygon points="${OUTS}" fill="#2b3841" stroke="#f6c915" stroke-width="1.6" stroke-linejoin="round"/>
 ${SHOW_ROADS?`<path d="${ROADS}" fill="none" stroke="#e5533d" stroke-opacity=".55" stroke-width=".9" stroke-linejoin="round"/>`:''}</g>
-<text x="${266*S}" y="${380*S}" text-anchor="middle" fill="#f6c915" fill-opacity=".5" font-weight="800" font-size="15" letter-spacing="3" style="text-transform:uppercase" data-t="Мангистауская область">Мангистауская область</text>
+<text x="${259*S}" y="${229*S+4.5}" text-anchor="middle" fill="#f6c915" fill-opacity=".55" font-weight="800" font-size="13" letter-spacing="2.5" style="text-transform:uppercase;pointer-events:none" data-t="Мангистауская область">Мангистауская область</text>
 <text transform="translate(${50*S} ${330*S}) rotate(-90)" text-anchor="middle" fill="#2aa6a0" fill-opacity=".6" font-style="italic" font-size="20" data-t="Каспийское море">Каспийское море</text>
 <g id="tw">${TW.map(([n,x,y,dx,dy,an,big])=>{const X=x*S,Y=y*S;return (big?`<circle cx="${X}" cy="${Y}" r="7" fill="none" stroke="#f6c915" stroke-width="2"/><circle cx="${X}" cy="${Y}" r="3" fill="#f6c915"/>`:`<circle cx="${X}" cy="${Y}" r="3.5" fill="#eadfc8" stroke="#0e1316" stroke-width="1"/>`)+`<text x="${X+dx}" y="${Y+dy}" text-anchor="${an}" fill="${big?'#f6c915':'#eadfc8'}" font-weight="800" data-t="${n}">${n}</text>`}).join('')}</g><g id="pg"></g></svg>
 <div class="mctl"><button id="mz1" aria-label="+">+</button><button id="mz2" aria-label="−">−</button><button id="mz3" aria-label="reset">⟲</button></div>
@@ -578,20 +579,20 @@ function addItem(o){
 function render(){
   items.sort((a,b)=>b.score-a.score);
   document.getElementById('q').innerHTML=items.map((o,i)=>`<li data-i="${i}"><div class="sc" style="color:${colors[o.level]}">${o.score}</div><div class="nm">${o.isNew?t('Новый снимок')+' · ':''}${place(o)}<small>${o.types.map(t).join(', ')} · ${t(lname[o.level])}</small></div>
-  <select data-s="${i}">${['Новая','В работе','Исправлена'].map((s,k)=>`<option value="${k}" ${o.st==k?'selected':''}>${t(s)}</option>`).join('')}</select></li>`).join('');
+  <span class="stt s${o.st}">${t(['Новая','В работе','Исправлена'][o.st])}</span></li>`).join('');
 }
 document.getElementById('q').addEventListener('click',e=>{
-  const s=e.target.closest('select');if(s)return;
   const li=e.target.closest('li');if(!li)return;
   select(items[+li.dataset.i]);
 });
-document.getElementById('q').addEventListener('change',e=>{if(e.target.dataset.s!=null)items[+e.target.dataset.s].st=+e.target.value});
 // случайные (демо) точки вдоль дорог, сид фиксирован
 
 // точки расставлены рядом с населёнными пунктами (демо-данные)
 const PT=[['Актау',16,24,70,91,['Яма','Трещина']],['Жанаозен',-20,24,70,84,['Яма','Выбоина']],['Бейнеу',16,20,70,78,['Сетка трещин','Яма']],['Шетпе',2,26,0,63,['Трещина','Выбоина']],['Форт-Шевченко',30,-6,0,52,['Трещина']],['Шайыр',2,-24,0,47,['Просадка']],['Акшымрау',0,26,0,58,['Выбоина']],['Жетыбай',-2,24,0,33,['Трещина']],['Устюрт',-4,26,0,28,['Просадка']]];
+// статусы розданы вручную: 1 — в работе, 2 — исправлена, остальные новые
+const STAT={'Актау':1,'Жанаозен':1,'Бейнеу':2,'Шетпе':2,'Шайыр':2};
 function nudge(x,y){for(let i=0;i<40&&!inLand(x/S,y/S);i++){x+=(W*.55-x)*.05;y+=(H*.55-y)*.05}return[x,y]}
-PT.forEach(([n,dx,dy,,sc,types])=>{const q=TW.find(w=>w[0]==n),[x,y]=nudge(q[1]*S+dx,q[2]*S+dy);addItem({town:n,x,y,score:sc,types})});
+PT.forEach(([n,dx,dy,,sc,types])=>{const q=TW.find(w=>w[0]==n),[x,y]=nudge(q[1]*S+dx,q[2]*S+dy);addItem({town:n,x,y,score:sc,types,st:STAT[n]||0})});
 
 // ---------- ЗАГЛУШКА ИИ-модели ----------
 // TODO: заменить на реальный вызов, например:
@@ -648,16 +649,25 @@ document.getElementById('sample').onclick=()=>{
   const img=new Image();img.onload=()=>analyze(img);img.src=c.toDataURL();
 };
 
-// ---------- Автопрокрутка очереди проверки ----------
-const qContainer = document.getElementById('q');
-setInterval(() => {
-  if (!qContainer) return;
-  if (qContainer.matches(':hover')) return; 
-  qContainer.scrollTop += 1;
-  if (qContainer.scrollTop + qContainer.clientHeight >= qContainer.scrollHeight - 2) {
-    qContainer.scrollTop = 0;
-  }
-}, 10); // скорость прокрутки
+// ---------- Автопрокрутка очереди проверки (пауза внизу и вверху, плавный возврат; на телефонах отключена) ----------
+(function(){
+ const q=document.getElementById('q');if(!q)return;
+ const off=matchMedia('(max-width:800px),(hover:none) and (pointer:coarse),(prefers-reduced-motion:reduce)');
+ const SPEED=35,HOLD_END=2800,HOLD_TOP=2200,BACK=1600; // px/с и миллисекунды
+ const ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+ let pos=0,state='holdTop',until=performance.now()+1500,last=performance.now(),from=0,t0=0;
+ function tick(now){
+  const dt=Math.min(now-last,50);last=now;
+  const max=q.scrollHeight-q.clientHeight;
+  if(off.matches||max<=2){pos=0;if(q.scrollTop)q.scrollTop=0;state='holdTop';until=now+1500}
+  else if(q.matches(':hover')&&state!='back'){pos=q.scrollTop;until=Math.max(until,now+400)}
+  else if(state=='run'){pos+=SPEED*dt/1000;q.scrollTop=pos;if(pos>=max){pos=max;state='holdEnd';until=now+HOLD_END}}
+  else if(state=='holdEnd'){if(now>=until){state='back';from=q.scrollTop;t0=now}}
+  else if(state=='back'){const p=Math.min((now-t0)/BACK,1);q.scrollTop=from*(1-ease(p));if(p>=1){pos=0;state='holdTop';until=now+HOLD_TOP}}
+  else if(now>=until){state='run';pos=q.scrollTop}
+  requestAnimationFrame(tick)}
+ requestAnimationFrame(tick);
+})();
 
 applyLang('ru');
 </script>
