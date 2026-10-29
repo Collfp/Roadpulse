@@ -2,12 +2,13 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Roadpulse — ИИ-поиск дефектов дорог</title>
+<link rel="preload" href="videos/road1.mp4" as="video" type="video/mp4">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--asp:#1a2126;--asp2:#242d33;--sand:#eadfc8;--mark:#f6c915;--sea:#2aa6a0;--red:#e5533d;--ink:#10161a;--fs:clamp(18px,1.15vw,26px)}
+:root{--asp:#1a2126;--asp2:#242d33;--sand:#eadfc8;--mark:#f6c915;--sea:#2aa6a0;--red:#e5533d;--ink:#10161a;--fs:clamp(16px,1.15vw,26px)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font:400 var(--fs)/1.5 Manrope,system-ui,sans-serif;background:var(--asp);color:#f2ede0;overflow-x:hidden}
@@ -153,12 +154,60 @@ footer{background:var(--asp);border-top:10px solid var(--mark);padding:8vh 3vw 3
 .soc a{width:52px;height:52px;border-radius:50%;border:1px solid #fff3;display:grid;place-items:center;font-weight:800;text-decoration:none;transition:.3s}
 .soc a:hover{background:var(--mark);color:var(--ink)}
 .fb{display:flex;justify-content:space-between;gap:2vw;flex-wrap:wrap;border-top:1px solid #fff2;margin-top:5vh;padding-top:3vh;opacity:.7;font-size:.85em}
-.fb span+span{margin-left:3vw}
+.fb div{display:flex;flex-wrap:wrap;gap:6px 3vw}.fb span+span{margin-left:0}
 [data-r]{opacity:0;transition:opacity .9s,transform 1s cubic-bezier(.2,.8,.2,1)}
 [data-r=up]{transform:translateY(70px)}[data-r=left]{transform:translateX(-120px)}[data-r=right]{transform:translateX(120px)}
 [data-r=clip]{transform:translateX(-60px)}[data-r=pop]{transform:scale(.8) rotate(-3deg)}
 [data-r].in{opacity:1;transform:none}
-@media(max-width:1000px){#hero,.prob,.dash,.steps,.kz,.fg{grid-template-columns:1fr}nav ul{display:none}.ph{width:60vw}}
+html{overflow-x:hidden;-webkit-text-size-adjust:100%}
+section,footer{overflow-x:clip}
+img,video,svg,canvas{max-width:100%}
+h1,h2,h3{overflow-wrap:break-word}
+#hero{min-height:100vh;min-height:100svh}
+.vid video{opacity:0;transition:opacity .6s ease}.vid video.on{opacity:1}
+.btn{margin:0 10px 10px 0}.btn.ghost{margin-left:0}
+.step::before{font-size:clamp(34px,4.5vw,120px)}
+.burger{display:none;width:44px;height:44px;border-radius:50%;border:0;background:rgba(26,33,38,.75);backdrop-filter:blur(10px);cursor:pointer;place-content:center;gap:6px}
+.burger span{display:block;width:20px;height:2px;background:#fff;border-radius:2px;transition:.3s}
+nav.open .burger span:first-child{transform:translateY(4px) rotate(45deg)}nav.open .burger span:last-child{transform:translateY(-4px) rotate(-45deg)}
+.nr{display:flex;align-items:center;gap:10px}
+@media(max-width:1200px){
+ .dash{grid-template-columns:1fr 1.2fr}.dash .panel:nth-child(3){grid-column:1/-1}.qw{min-height:380px}
+ .steps{grid-template-columns:repeat(3,1fr)}.fg{grid-template-columns:1fr 1fr}
+}
+@media(max-width:1000px){
+ #hero,.prob,.kz{grid-template-columns:minmax(0,1fr)}
+ .kz>div:first-child{transform:none}
+ #hero{padding-top:16vh;gap:5vh}
+ .lap{transform:none;animation:none}
+ .ph{width:36vw}
+ .stat:nth-child(n){margin-left:0}
+ nav ul{padding:8px 18px;gap:18px}
+}
+@media(max-width:800px){
+ .dash{grid-template-columns:1fr}.dash .panel:nth-child(3){grid-column:auto}
+ .steps{grid-template-columns:1fr 1fr}.ph{width:62vw}
+ .panel{padding:16px}.drop{min-height:200px}
+ #map{min-height:min(110vw,75vh)}
+}
+@media(max-width:700px){
+ nav{padding:12px 4vw}
+ nav ul{display:none;position:absolute;top:100%;left:4vw;right:4vw;flex-direction:column;border-radius:22px;padding:18px 24px;gap:16px;background:rgba(26,33,38,.96)}
+ nav.open ul{display:flex}nav ul a{font-size:1em}
+ .burger{display:grid}
+ section{padding:6vh 5vw}#hero{padding:15vh 5vw 5vh}
+ h1{font-size:15vw}h2{font-size:clamp(26px,8vw,40px)}
+ .goal{padding:16px 18px;font-size:1.1em}.btn{padding:14px 24px}
+ .lap{border-width:8px 8px 16px;border-radius:16px}
+ .big97{border-radius:24px;transform:none}
+ .stat{flex-direction:column;gap:6px;padding:20px}
+ .steps{grid-template-columns:1fr}
+ .q li{grid-template-columns:52px 1fr}.q select{grid-column:1/-1}
+ .mhint{display:none}.mleg{gap:10px;padding:6px 12px}
+ .fg{grid-template-columns:1fr}.fb{flex-direction:column}.fb span+span{margin-left:0}
+ .tick div{font-size:1.2em}
+}
+@media(max-width:420px){.lang button{padding:7px 11px}.logo{font-size:1em}.ph{width:76vw}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}[data-r]{opacity:1;transform:none}h1 em{transform:none}.goal{opacity:1}}
 </style>
 </head>
@@ -166,7 +215,7 @@ footer{background:var(--asp);border-top:10px solid var(--mark);padding:8vh 3vw 3
 <div id="prog"></div>
 <nav><a class="logo" href="#hero"><i></i>Roadpulse</a>
 <ul><li><a href="#problem" data-t>Проблема</a></li><li><a href="#how" data-t>Как работает</a></li><li><a href="#demo" data-t>Демо</a></li><li><a href="#contacts" data-t>Контакты</a></li></ul>
-<div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="kz">KZ</button><button data-l="en">EN</button></div></nav>
+<div class="nr"><div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="kz">KZ</button><button data-l="en">EN</button></div><button class="burger" id="burger" aria-label="Menu"><span></span><span></span></button></div></nav>
 
 <section id="hero">
   <div>
@@ -176,7 +225,7 @@ footer{background:var(--asp);border-top:10px solid var(--mark);padding:8vh 3vw 3
     <a class="btn" href="#demo" data-t>Попробовать на фото</a><a class="btn ghost" href="#how" data-t>Как это работает</a>
   </div>
   <div class="lapw"><div class="lap">
-    <div class="vid"><video id="hv" autoplay muted loop playsinline src="videos/road1.mp4"></video></div>
+    <div class="vid" id="vbox"></div>
     <div class="tag" data-t>Живые кадры с дорог</div><div class="dots" id="dots"></div>
     <!-- <div class="box" style="left:12%;top:48%;width:22%;height:16%"><b><span data-t>Яма</span> · 94%</b></div>
     <div class="box m" style="left:44%;top:56%;width:28%;height:9%;animation-delay:-2s"><b><span data-t>Трещина</span> · 87%</b></div>
@@ -399,12 +448,32 @@ document.getElementById('rows').innerHTML=Object.entries(PHOTOS).map(([k,a],i)=>
   const f=a.concat(a).map((s,j)=>`<figure class="ph"><img src="${s}" alt="${k}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=__art(this.closest('.row').dataset.k,${j%a.length})"><figcaption data-t="${k}">${k}</figcaption></figure>`).join('');
   return `<div class="row" data-k="${k}" data-r="up"><h3 data-t="${k}">${k}</h3><div class="vp"><div class="trk ${i%2?'rv':''}">${f}</div></div></div>`}).join('');
 
-// ---------- видео в «ноутбуке» ----------
-const clips=['videos/road1.mp4','videos/road2.mp4','videos/road3.mp4','videos/road4.mp4'],hv=document.getElementById('hv'),dots=document.getElementById('dots');let ci=0;
+// ---------- видео в «ноутбуке»: предзагрузка и плавная смена без пустых кадров ----------
+const clips=['videos/road1.mp4','videos/road2.mp4','videos/road3.mp4','videos/road4.mp4'],box=document.getElementById('vbox'),dots=document.getElementById('dots');
 dots.innerHTML=clips.map(()=>'<i></i>').join('');
-function setClip(){[...dots.children].forEach((d,i)=>d.classList.toggle('on',i==ci));hv.loop=false;hv.src=clips[ci];hv.play().catch(()=>{})}
-hv.onended=()=>{ci=(ci+1)%clips.length;setClip()};hv.onerror=()=>{};
-setInterval(()=>{ci=(ci+1)%clips.length;setClip()},7000);setClip();
+const vs=clips.map(src=>{const v=document.createElement('video');v.muted=true;v.defaultMuted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');v.disablePictureInPicture=true;v.preload='none';v.dataset.src=src;v.dataset.ok='1';v.onerror=()=>{v.dataset.ok='0'};box.appendChild(v);return v});
+function loadClip(i){const v=vs[i];if(!v.getAttribute('src')&&v.dataset.ok!='0'){v.src=v.dataset.src;v.preload='auto';v.load()}}
+let cur=-1,tok=0,fails=0;
+function playClip(i){
+  const my=++tok;if(fails>vs.length*2||vs.every(v=>v.dataset.ok=='0'))return;
+  if(vs[i].dataset.ok=='0')return playClip((i+1)%vs.length);
+  const v=vs[i],nx=()=>{if(my==tok)playClip((i+1)%vs.length)};loadClip(i);
+  try{v.currentTime=0}catch(e){}
+  const slow=setTimeout(()=>{fails++;nx()},9000);
+  const p=v.play();
+  (p&&p.then?p:Promise.resolve()).then(()=>{clearTimeout(slow);if(my!=tok)return;fails=0;
+    const prev=vs[cur];v.classList.add('on');
+    if(prev&&prev!==v){prev.classList.remove('on');setTimeout(()=>{if(!prev.classList.contains('on'))prev.pause()},800)}
+    cur=i;[...dots.children].forEach((d,k)=>d.classList.toggle('on',k==i));
+    loadClip((i+1)%vs.length);v.onended=nx;setTimeout(nx,7000)
+  }).catch(e=>{clearTimeout(slow);if(my!=tok)return;if(e&&e.name=='NotAllowedError')return;if(e&&e.name=='NotSupportedError')v.dataset.ok='0';fails++;setTimeout(nx,300)})
+}
+loadClip(0);playClip(0);
+['pointerdown','touchstart','keydown'].forEach(ev=>addEventListener(ev,()=>{if(cur<0)playClip(0)},{once:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cur>=0)vs[cur].play().catch(()=>{})});
+// мобильное меню
+const nv=document.querySelector('nav'),bg=document.getElementById('burger');
+bg.onclick=()=>nv.classList.toggle('open');nv.querySelector('ul').onclick=e=>{if(e.target.closest('a'))nv.classList.remove('open')};
 
 // ---------- карта Казахстана ----------
 // Контур построен по реальным координатам границ (долгота, широта), проекция сжимает долготу как на настоящей карте.
@@ -487,6 +556,7 @@ function go(x,y,tw){const th=tw*base.h/base.w,s={...vb},t0=performance.now();(fu
 svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY>0?1.2:1/1.2,e.clientX,e.clientY)},{passive:false});
 svg.addEventListener('pointerdown',e=>{if(e.target.classList.contains('pt'))return;drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y,m:false};svg.setPointerCapture(e.pointerId)});
 svg.addEventListener('pointermove',e=>{if(!drag)return;const k=mapEl.clientWidth/vb.w,dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3)drag.m=true;vb.x=drag.vx-dx/k;vb.y=drag.vy-dy/k;draw()});
+svg.addEventListener('pointercancel',()=>{drag=null});
 svg.addEventListener('pointerup',()=>{if(drag&&!drag.m){pinned=false;sel=null;hideTip();draw()}drag=null});
 const zc=f=>{const r=mapEl.getBoundingClientRect();zoomAt(f,r.left+r.width/2,r.top+r.height/2)};
 document.getElementById('mz1').onclick=()=>zc(1/1.5);document.getElementById('mz2').onclick=()=>zc(1.5);
@@ -519,18 +589,7 @@ document.getElementById('q').addEventListener('change',e=>{if(e.target.dataset.s
 // случайные (демо) точки вдоль дорог, сид фиксирован
 
 // точки расставлены рядом с населёнными пунктами (демо-данные)
-//['Название', сдвиг по X, сдвиг по Y, 0, приоритет, [типы дефектов]]
-const PT=[
-  ['Актау',16,24,70,91,['Яма','Трещина']],
-  ['Жанаозен',-20,24,70,84,['Яма','Выбоина']],
-  ['Бейнеу',16,20,70,78,['Сетка трещин','Яма']],
-  ['Шетпе',2,26,0,63,['Трещина','Выбоина']],
-  ['Форт-Шевченко',30,-6,0,52,['Трещина']],
-  ['Шайыр',2,-24,0,47,['Просадка']],
-  ['Акшымрау',0,26,0,58,['Выбоина']],
-  ['Жетыбай',-2,24,0,33,['Трещина']],
-  ['Устюрт',-4,26,0,28,['Просадка']]
-];
+const PT=[['Актау',16,24,70,91,['Яма','Трещина']],['Жанаозен',-20,24,70,84,['Яма','Выбоина']],['Бейнеу',16,20,70,78,['Сетка трещин','Яма']],['Шетпе',2,26,0,63,['Трещина','Выбоина']],['Форт-Шевченко',30,-6,0,52,['Трещина']],['Шайыр',2,-24,0,47,['Просадка']],['Акшымрау',0,26,0,58,['Выбоина']],['Жетыбай',-2,24,0,33,['Трещина']],['Устюрт',-4,26,0,28,['Просадка']]];
 function nudge(x,y){for(let i=0;i<40&&!inLand(x/S,y/S);i++){x+=(W*.55-x)*.05;y+=(H*.55-y)*.05}return[x,y]}
 PT.forEach(([n,dx,dy,,sc,types])=>{const q=TW.find(w=>w[0]==n),[x,y]=nudge(q[1]*S+dx,q[2]*S+dy);addItem({town:n,x,y,score:sc,types})});
 
