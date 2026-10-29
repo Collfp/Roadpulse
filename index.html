@@ -6,7 +6,6 @@
 <title>Roadpulse — ИИ-поиск дефектов дорог</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{--asp:#1a2126;--asp2:#242d33;--sand:#eadfc8;--mark:#f6c915;--sea:#2aa6a0;--red:#e5533d;--ink:#10161a;--fs:clamp(18px,1.15vw,26px)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -118,7 +117,22 @@ canvas.show{display:block}
 .res{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pill{padding:6px 16px;border-radius:99px;font-weight:800;font-size:.85em;color:var(--ink)}
 .hi{background:var(--red);color:#fff}.mid{background:var(--mark)}.lo{background:var(--sea)}
-#map{flex:1;min-height:60vh;border-radius:18px;z-index:1;background:#1d252a;display:grid;place-items:center}
+#map{flex:1 1 auto;min-height:60vh;border-radius:18px;z-index:1;background:#1d252a;position:relative}
+#map{overflow:hidden}
+#ms{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;display:block}
+#ms:active{cursor:grabbing}
+.pt{cursor:pointer}.pt:hover{filter:brightness(1.35)}
+.rt2{animation:dash 1.6s linear infinite}
+.dummy{display:none}
+#tip{position:absolute;display:none;z-index:5;transform:translate(-50%,calc(-100% - 18px));background:#0e1316;border:1px solid #ffffff30;border-radius:14px;padding:10px 14px;font-size:.8em;pointer-events:none;white-space:nowrap;flex-direction:column;gap:5px;align-items:flex-start;box-shadow:0 10px 30px #000a}
+#tip i{font-style:normal}
+.mctl{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.mctl button{width:42px;height:42px;border-radius:12px;border:1px solid #fff3;background:#0e1316dd;color:#fff;font:800 20px Manrope;cursor:pointer}
+.mctl button:hover{background:var(--mark);color:var(--ink)}
+.mleg{position:absolute;left:12px;bottom:12px;z-index:5;display:flex;gap:16px;background:#0e1316dd;padding:8px 16px;border-radius:99px;font-size:.75em}
+.mleg i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.mhint{position:absolute;left:12px;top:12px;z-index:5;font-size:.7em;opacity:.7;max-width:60%;pointer-events:none}
+.mapmsg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px}
 .qw{position:relative;flex:1;min-height:320px}
 .q{position:absolute;inset:0;list-style:none;display:flex;flex-direction:column;gap:10px;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
 .q::-webkit-scrollbar{display:none}
@@ -164,10 +178,10 @@ footer{background:var(--asp);border-top:10px solid var(--mark);padding:8vh 3vw 3
   <div class="lapw"><div class="lap">
     <div class="vid"><video id="hv" autoplay muted loop playsinline src="videos/road1.mp4"></video></div>
     <div class="tag" data-t>Живые кадры с дорог</div><div class="dots" id="dots"></div>
-    <div class="box" style="left:12%;top:48%;width:22%;height:16%"><b><span data-t>Яма</span> · 94%</b></div>
+    <!-- <div class="box" style="left:12%;top:48%;width:22%;height:16%"><b><span data-t>Яма</span> · 94%</b></div>
     <div class="box m" style="left:44%;top:56%;width:28%;height:9%;animation-delay:-2s"><b><span data-t>Трещина</span> · 87%</b></div>
-    <div class="box" style="left:70%;top:36%;width:14%;height:12%;animation-delay:-4s"><b><span data-t>Выбоина</span> · 91%</b></div>
-    <div class="foot">Roadpulse · 97%</div>
+    <div class="box" style="left:70%;top:36%;width:14%;height:12%;animation-delay:-4s"><b><span data-t>Выбоина</span> · 91%</b></div> -->
+    <div class="foot">Roadpulse</div>
   </div></div>
 </section>
 <div class="tick"><div id="tk"></div></div>
@@ -236,12 +250,11 @@ footer{background:var(--asp);border-top:10px solid var(--mark);padding:8vh 3vw 3
       <div class="soc"><a href="#">in</a><a href="#">ig</a><a href="#">f</a></div></div>
     <div><h4 data-t>Разделы</h4><ul><li data-t>О проекте</li><li data-t>Команда</li><li data-t>Карта</li><li data-t>Демо</li></ul></div>
     <div><h4 data-t>Решение</h4><ul><li data-t>Распознавание дефектов</li><li data-t>Приоритеты ремонта</li><li data-t>Управление заявками</li></ul></div>
-    <div><h4 data-t>Контакты</h4><ul><li>info@roadpulse.kz</li><li>+7 (000) 000-00-00</li><li data-t>Адрес: [заглушка]</li></ul></div>
+    <div><h4 data-t>Контакты</h4><ul><li>info@roadpulse.kz</li><li>+7 (747) 856-33-33</li><li data-t>Адрес: roadpulse@mail.ru</li></ul></div>
   </div>
   <div class="fb"><span>© 2026 Roadpulse. <span data-t>Все права защищены.</span></span><div><span data-t>Политика конфиденциальности</span><span data-t>Условия использования</span></div></div>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 // ---------- переводы: ru | kz | en ----------
 const T={kz:{},en:{}};
@@ -387,7 +400,7 @@ document.getElementById('rows').innerHTML=Object.entries(PHOTOS).map(([k,a],i)=>
   return `<div class="row" data-k="${k}" data-r="up"><h3 data-t="${k}">${k}</h3><div class="vp"><div class="trk ${i%2?'rv':''}">${f}</div></div></div>`}).join('');
 
 // ---------- видео в «ноутбуке» ----------
-const clips=['videos/','videos/road2.mp4','videos/road3.mp4','videos/road4.mp4'],hv=document.getElementById('hv'),dots=document.getElementById('dots');let ci=0;
+const clips=['videos/road1.mp4','videos/road2.mp4','videos/road3.mp4','videos/road4.mp4'],hv=document.getElementById('hv'),dots=document.getElementById('dots');let ci=0;
 dots.innerHTML=clips.map(()=>'<i></i>').join('');
 function setClip(){[...dots.children].forEach((d,i)=>d.classList.toggle('on',i==ci));hv.loop=false;hv.src=clips[ci];hv.play().catch(()=>{})}
 hv.onended=()=>{ci=(ci+1)%clips.length;setClip()};hv.onerror=()=>{};
@@ -432,23 +445,65 @@ const prog=document.getElementById('prog');
 addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(scrollY/(h.scrollHeight-innerHeight)*100)+'%'},{passive:true});
 
 // ---------- карта повреждений (по дорогам Мангистау) ----------
-const routes=[['Актау – Жанаозен',230,[[43.65,51.15],[43.55,51.9],[43.45,52.4],[43.35,52.86]]],['Жанаозен – Бейнеу',290,[[43.35,52.86],[44.2,53.9],[45.31,55.2]]],['Актау – Форт-Шевченко',120,[[43.65,51.15],[44.1,50.6],[44.51,50.26]]],['Актау – Шетпе',160,[[43.65,51.15],[44.17,52.12]]]];
 const colors={hi:'#e5533d',mid:'#f6c915',lo:'#2aa6a0'},lvl=s=>s>=70?'hi':s>=40?'mid':'lo',lname={hi:'Высокий',mid:'Средний',lo:'Низкий'};
 const tp=['Яма','Трещина','Выбоина','Сетка трещин','Просадка'];
-let map=null,layer=null;const items=[];
-function fit(){if(map){map.invalidateSize();map.fitBounds([[43.2,50.2],[45.4,55.4]],{padding:[20,20]})}}
-if(window.L){
- map=L.map('map',{zoomControl:true,preferCanvas:true}).setView([44,52.5],8);
- L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:18}).addTo(map);
- routes.forEach(r=>L.polyline(r[2],{color:'#ffffff',weight:3,opacity:.35,dashArray:'6 8'}).addTo(map));
- layer=L.layerGroup().addTo(map);
- addEventListener('resize',fit);addEventListener('load',fit);
-}else document.getElementById('map').innerHTML='<span class="note" data-t>Карта недоступна без интернета</span>';
-function place(o){return t(routes[o.r][0])+' · '+o.km+' '+t('км')}
+// ---------- собственная карта (SVG, без внешних сервисов) ----------
+Object.assign(T.kz,{'Актау':'Ақтау','Жанаозен':'Жаңаөзен','Бейнеу':'Бейнеу','Шетпе':'Шетпе','Курык':'Құрық','Сенек':'Сенек','Форт-Шевченко':'Форт-Шевченко','Каспийское море':'Каспий теңізі','Мангистауская область':'Маңғыстау облысы','Актау – Курык':'Ақтау – Құрық','Шетпе – Жанаозен':'Шетпе – Жаңаөзен','Жанаозен – Сенек':'Жаңаөзен – Сенек','Бейнеу – граница':'Бейнеу – шекара','Колесо — масштаб, перетаскивание — сдвиг, клик по точке — детали':'Дөңгелек — масштаб, сүйреу — жылжыту, нүкте — мәліметтер'});
+Object.assign(T.en,{'Актау':'Aktau','Жанаозен':'Zhanaozen','Бейнеу':'Beineu','Шетпе':'Shetpe','Курык':'Kuryk','Сенек':'Senek','Форт-Шевченко':'Fort-Shevchenko','Каспийское море':'Caspian Sea','Мангистауская область':'Mangystau region','Актау – Курык':'Aktau – Kuryk','Шетпе – Жанаозен':'Shetpe – Zhanaozen','Жанаозен – Сенек':'Zhanaozen – Senek','Бейнеу – граница':'Beineu – border','Колесо — масштаб, перетаскивание — сдвиг, клик по точке — детали':'Wheel to zoom, drag to pan, click a point for details'});
+const items=[],NS='http://www.w3.org/2000/svg',mapEl=document.getElementById('map');
+Object.assign(T.kz,{'Жетыбай':'Жетібай','Шайыр':'Шайыр','Тущыкудук':'Түшіқұдық','Шебир':'Шебір','Кызан':'Қызан','Акшымрау':'Ақшымырау','Устюрт':'Үстірт'});
+Object.assign(T.en,{'Жетыбай':'Zhetybay','Шайыр':'Shayyr','Тущыкудук':'Tushikuduk','Шебир':'Shebir','Кызан':'Kyzan','Акшымрау':'Akshimrau','Устюрт':'Usturt'});
+// Карта построена по референсу (d-maps): контур и дороги векторизованы, координаты в пикселях референса × S
+const SHOW_ROADS=true; // false — скрыть красные дороги
+const S=1.6,W=Math.round(429*S),H=Math.round(466*S);
+const OUT=[[336,10],[323,22],[301,22],[262,33],[245,33],[245,37],[240,44],[228,53],[197,53],[190,63],[190,78],[187,80],[187,83],[189,84],[191,101],[193,103],[199,104],[208,112],[221,108],[227,111],[231,111],[231,115],[216,114],[204,116],[203,114],[177,114],[173,111],[164,110],[156,105],[133,107],[127,104],[111,104],[99,111],[87,114],[81,125],[81,136],[74,138],[68,146],[71,150],[71,153],[74,154],[75,157],[80,161],[85,175],[94,176],[96,178],[95,181],[89,182],[84,179],[78,185],[73,185],[72,183],[69,184],[61,175],[56,172],[41,173],[30,172],[26,170],[22,172],[18,181],[19,193],[24,199],[33,202],[44,202],[49,204],[55,210],[57,223],[64,230],[66,242],[73,256],[81,263],[84,271],[84,281],[81,290],[81,296],[91,297],[104,295],[106,297],[105,301],[111,307],[115,318],[120,324],[128,321],[138,321],[143,327],[149,324],[156,324],[162,326],[165,331],[168,331],[171,334],[172,341],[169,342],[166,337],[160,333],[160,335],[167,343],[167,348],[161,366],[151,381],[152,390],[156,396],[156,401],[153,408],[190,378],[215,368],[241,363],[259,363],[294,386],[304,398],[304,406],[312,416],[321,435],[336,450],[343,451],[347,448],[367,446],[367,142],[374,138],[410,127],[412,125],[407,97],[404,61],[400,55],[398,45],[395,43],[387,42],[377,43],[371,37],[367,36],[365,32],[359,34],[359,26],[357,24],[357,20],[344,18]];
+const ROADS='M174,343 169,382 166,392 169,382ZM92,266 99,278 105,284 106,291 109,294 114,295 122,294 129,282 133,267 166,280 173,279 176,282 170,292 165,311 165,321 169,328 165,321 165,311 170,292 176,282 173,279 166,280 133,266 133,261 133,264 129,265 115,260 108,260 115,260 133,266 131,277 121,295 109,294 106,291 105,284 99,278ZM81,254 81,256 90,263 81,256 83,252 89,253 94,258 101,260 94,258 86,252ZM138,212 138,221 133,227 128,241 131,256 128,241 131,231 138,221ZM280,159 243,180 219,199 212,208 199,217 193,217 177,211 149,212 145,210 149,212 177,211 193,217 199,217 212,208 219,199 243,180ZM87,132 85,132 91,136 95,145 106,158 109,178 102,190 94,197 82,213 69,222 68,215 64,207 57,200 42,198 33,191 42,198 57,200 64,207 68,215 69,239 76,250 69,239 68,223 79,216 92,201 107,206 111,211 119,211 131,215 119,211 111,211 107,206 93,201 94,197 102,190 107,182 109,173 107,170 106,158 95,145 91,136ZM347,133 335,123 320,113 317,113 315,128 309,136 283,156 309,136 315,128 317,113 320,113ZM123,108 116,112 104,113 89,118 104,113 116,112ZM218,57 221,61 225,62 231,57 242,55 247,49 258,46 273,38 282,50 284,57 310,102 316,109 310,102 284,57 282,50 272,35 273,37 265,43 247,49 242,55 231,57 225,62 221,61Z';
+const OUTS=OUT.map(p=>p.join(',')).join(' ');
+const inLand=(x,y)=>{let c=false;for(let i=0,j=OUT.length-1;i<OUT.length;j=i++){const[a,b]=OUT[i],[p,q]=OUT[j];if((b>y)!=(q>y)&&x<(p-a)*(y-b)/(q-b)+a)c=!c}return c};
+// [название, x, y (px референса), смещение подписи dx, dy, якорь, крупный]
+const TW=[['Актау',76,253,12,-10,'start',1],['Форт-Шевченко',22,180,10,18,'start'],['Жетыбай',132,259,10,16,'start'],['Жанаозен',176,279,10,5,'start'],['Шетпе',135,214,10,5,'start'],['Шайыр',115,205,-9,-4,'end'],['Тущыкудук',124,163,-9,10,'end'],['Шебир',133.5,156,0,-10,'middle'],['Кызан',167,149,0,-10,'middle'],['Акшымрау',177,157,10,5,'start'],['Устюрт',281,158,10,5,'start'],['Бейнеу',317,111,-10,-8,'end']];
+mapEl.innerHTML=`<svg id="ms" xmlns="${NS}"><defs><linearGradient id="sg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${W*.6}" y2="0"><stop offset="0" stop-color="#113640"/><stop offset="1" stop-color="#1a2126"/></linearGradient></defs>
+<rect x="-4000" y="-4000" width="9000" height="9000" fill="url(#sg)"/>
+<g transform="scale(${S})"><polygon points="${OUTS}" fill="none" stroke="#f6c915" stroke-opacity=".16" stroke-width="7" stroke-linejoin="round"/><polygon points="${OUTS}" fill="#2b3841" stroke="#f6c915" stroke-width="1.6" stroke-linejoin="round"/>
+${SHOW_ROADS?`<path d="${ROADS}" fill="none" stroke="#e5533d" stroke-opacity=".55" stroke-width=".9" stroke-linejoin="round"/>`:''}</g>
+<text x="${266*S}" y="${380*S}" text-anchor="middle" fill="#f6c915" fill-opacity=".5" font-weight="800" font-size="15" letter-spacing="3" style="text-transform:uppercase" data-t="Мангистауская область">Мангистауская область</text>
+<text transform="translate(${50*S} ${330*S}) rotate(-90)" text-anchor="middle" fill="#2aa6a0" fill-opacity=".6" font-style="italic" font-size="20" data-t="Каспийское море">Каспийское море</text>
+<g id="tw">${TW.map(([n,x,y,dx,dy,an,big])=>{const X=x*S,Y=y*S;return (big?`<circle cx="${X}" cy="${Y}" r="7" fill="none" stroke="#f6c915" stroke-width="2"/><circle cx="${X}" cy="${Y}" r="3" fill="#f6c915"/>`:`<circle cx="${X}" cy="${Y}" r="3.5" fill="#eadfc8" stroke="#0e1316" stroke-width="1"/>`)+`<text x="${X+dx}" y="${Y+dy}" text-anchor="${an}" fill="${big?'#f6c915':'#eadfc8'}" font-weight="800" data-t="${n}">${n}</text>`}).join('')}</g><g id="pg"></g></svg>
+<div class="mctl"><button id="mz1" aria-label="+">+</button><button id="mz2" aria-label="−">−</button><button id="mz3" aria-label="reset">⟲</button></div>
+<div class="mleg"><span><i style="background:#e5533d"></i><b data-t>Высокий</b></span><span><i style="background:#f6c915"></i><b data-t>Средний</b></span><span><i style="background:#2aa6a0"></i><b data-t>Низкий</b></span></div>
+<div class="mhint" data-t>Колесо — масштаб, перетаскивание — сдвиг, клик по точке — детали</div><div id="tip"></div>`;
+const svg=document.getElementById('ms'),pg=document.getElementById('pg'),tip=document.getElementById('tip');
+let base={w:W,h:H},vb={x:0,y:0,w:W,h:H},sel=null,tipO=null,pinned=false,drag=null;
+function fitView(keep){const cw=mapEl.clientWidth||600,ch=mapEl.clientHeight||600,a=cw/ch;let w,h;if(a>W/H){h=H;w=H*a}else{w=W;h=W/a}
+ const z=keep?vb.w/base.w:1,cx=keep?vb.x+vb.w/2:W/2,cy=keep?vb.y+vb.h/2:H/2;base={w,h};vb.w=w*z;vb.h=h*z;vb.x=cx-vb.w/2;vb.y=cy-vb.h/2;draw()}
+function fit(){fitView(true)}
+function draw(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);const k=(mapEl.clientWidth||600)/vb.w;
+ items.forEach(o=>{if(!o.el)return;const r=(o===sel?12:8.5)/k;o.el.setAttribute('r',r);o.el.setAttribute('stroke-width',2.2/k);o.el.setAttribute('stroke',o===sel?'#f6c915':'#fff');o.ring.setAttribute('r',r)});
+ document.querySelectorAll('#tw text').forEach(x=>x.style.fontSize=(13*Math.sqrt(vb.w/base.w))+'px');placeTip()}
+function zoomAt(f,cx,cy){const r=mapEl.getBoundingClientRect(),k=mapEl.clientWidth/vb.w,px=vb.x+(cx-r.left)/k,py=vb.y+(cy-r.top)/k,nw=Math.min(base.w*1.3,Math.max(base.w*.07,vb.w*f));f=nw/vb.w;
+ vb.x=px-(px-vb.x)*f;vb.y=py-(py-vb.y)*f;vb.w=nw;vb.h*=f;draw()}
+function go(x,y,tw){const th=tw*base.h/base.w,s={...vb},t0=performance.now();(function st(n){const p=Math.min((n-t0)/650,1),e=1-Math.pow(1-p,3);
+ vb.x=s.x+(x-tw/2-s.x)*e;vb.y=s.y+(y-th/2-s.y)*e;vb.w=s.w+(tw-s.w)*e;vb.h=s.h+(th-s.h)*e;draw();if(p<1)requestAnimationFrame(st)})(t0)}
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY>0?1.2:1/1.2,e.clientX,e.clientY)},{passive:false});
+svg.addEventListener('pointerdown',e=>{if(e.target.classList.contains('pt'))return;drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y,m:false};svg.setPointerCapture(e.pointerId)});
+svg.addEventListener('pointermove',e=>{if(!drag)return;const k=mapEl.clientWidth/vb.w,dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3)drag.m=true;vb.x=drag.vx-dx/k;vb.y=drag.vy-dy/k;draw()});
+svg.addEventListener('pointerup',()=>{if(drag&&!drag.m){pinned=false;sel=null;hideTip();draw()}drag=null});
+const zc=f=>{const r=mapEl.getBoundingClientRect();zoomAt(f,r.left+r.width/2,r.top+r.height/2)};
+document.getElementById('mz1').onclick=()=>zc(1/1.5);document.getElementById('mz2').onclick=()=>zc(1.5);
+document.getElementById('mz3').onclick=()=>{sel=null;pinned=false;hideTip();go(W/2,H/2,base.w)};
+function showTip(o){tipO=o;tip.innerHTML=`<b>${o.isNew?t('Новый снимок')+' · ':''}${place(o)}</b><span>${o.types.map(t).join(', ')}</span><i class="pill ${o.level}">${t(lname[o.level])} · ${o.score}</i>`;tip.style.display='flex';placeTip()}
+function hideTip(){tipO=null;tip.style.display='none'}
+function placeTip(){if(!tipO||!tipO.el)return;const r=tipO.el.getBoundingClientRect(),m=mapEl.getBoundingClientRect();tip.style.left=(r.left-m.left+r.width/2)+'px';tip.style.top=(r.top-m.top)+'px'}
+function select(o){sel=o;pinned=true;showTip(o);go(o.x,o.y,base.w*.3)}
+function mkPoint(o){const x=o.x,y=o.y,mk=(c)=>{const e=document.createElementNS(NS,'circle');e.setAttribute('cx',x);e.setAttribute('cy',y);e.setAttribute('class',c);pg.appendChild(e);return e};
+ o.ring=mk(o.level=='hi'?'pu':'dummy');if(o.level=='hi'){o.ring.style.stroke=colors.hi;o.ring.style.animationDelay=(Math.random()*2)+'s'}
+ const c=mk('pt');c.setAttribute('fill',colors[o.level]);o.el=c;
+ c.onmouseenter=()=>{if(!pinned)showTip(o)};c.onmouseleave=()=>{if(!pinned)hideTip()};c.onclick=e=>{e.stopPropagation();select(o)};draw()}
+new ResizeObserver(fit).observe(mapEl);fitView(false);
+function place(o){return t(o.town)}
 function addItem(o){
   o.level=lvl(o.score);o.st=o.st||0;
-  if(map)o.marker=L.circleMarker([o.lat,o.lng],{radius:8,color:'#fff',weight:2,fillColor:colors[o.level],fillOpacity:.95}).addTo(layer).bindPopup(()=>`<b>${o.isNew?t('Новый снимок')+' · ':''}${place(o)}</b><br>${o.types.map(t).join(', ')}<br>${t('Приоритет')}: ${o.score}`);
-  items.push(o);
+  items.push(o);mkPoint(o);
 }
 function render(){
   items.sort((a,b)=>b.score-a.score);
@@ -458,20 +513,33 @@ function render(){
 document.getElementById('q').addEventListener('click',e=>{
   const s=e.target.closest('select');if(s)return;
   const li=e.target.closest('li');if(!li)return;
-  const o=items[+li.dataset.i];if(map){map.flyTo([o.lat,o.lng],12);o.marker.openPopup()}
+  select(items[+li.dataset.i]);
 });
 document.getElementById('q').addEventListener('change',e=>{if(e.target.dataset.s!=null)items[+e.target.dataset.s].st=+e.target.value});
 // случайные (демо) точки вдоль дорог, сид фиксирован
-let sd=11;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
-function onRoute(ri){const [,len,w]=routes[ri],sg=Math.floor(rnd()*(w.length-1)),f=rnd(),a=w[sg],b=w[sg+1];
-  return{r:ri,km:Math.round((sg+f)/(w.length-1)*len),lat:a[0]+(b[0]-a[0])*f+(rnd()-.5)*.012,lng:a[1]+(b[1]-a[1])*f+(rnd()-.5)*.012}}
-routes.forEach((_,ri)=>{for(let i=0;i<11;i++){const p=onRoute(ri),n=1+Math.floor(rnd()*2);
-  addItem({...p,score:Math.round(10+rnd()*88),types:[...new Set(Array.from({length:n},()=>tp[Math.floor(rnd()*5)]))]})}});
+
+// точки расставлены рядом с населёнными пунктами (демо-данные)
+//['Название', сдвиг по X, сдвиг по Y, 0, приоритет, [типы дефектов]]
+const PT=[
+  ['Актау',16,24,70,91,['Яма','Трещина']],
+  ['Жанаозен',-20,24,70,84,['Яма','Выбоина']],
+  ['Бейнеу',16,20,70,78,['Сетка трещин','Яма']],
+  ['Шетпе',2,26,0,63,['Трещина','Выбоина']],
+  ['Форт-Шевченко',30,-6,0,52,['Трещина']],
+  ['Шайыр',2,-24,0,47,['Просадка']],
+  ['Акшымрау',0,26,0,58,['Выбоина']],
+  ['Жетыбай',-2,24,0,33,['Трещина']],
+  ['Устюрт',-4,26,0,28,['Просадка']]
+];
+function nudge(x,y){for(let i=0;i<40&&!inLand(x/S,y/S);i++){x+=(W*.55-x)*.05;y+=(H*.55-y)*.05}return[x,y]}
+PT.forEach(([n,dx,dy,,sc,types])=>{const q=TW.find(w=>w[0]==n),[x,y]=nudge(q[1]*S+dx,q[2]*S+dy);addItem({town:n,x,y,score:sc,types})});
 
 // ---------- ЗАГЛУШКА ИИ-модели ----------
 // TODO: заменить на реальный вызов, например:
 // const r = await fetch('/api/detect',{method:'POST',body:formData}); return await r.json();
 // Формат: [{type:'Яма', conf:0.93, x,y,w,h}] в долях изображения (0..1)
+
+
 async function detectDefects(img){
   await new Promise(r=>setTimeout(r,900));
   const n=2+Math.floor(Math.random()*3);
@@ -480,7 +548,9 @@ async function detectDefects(img){
 function severity(d){const wt={'Яма':1,'Выбоина':.9,'Сетка трещин':.7,'Трещина':.45};
   return Math.min(100,Math.round(d.reduce((s,b)=>s+(wt[b.type]||.5)*Math.sqrt(b.w*b.h)*b.conf*190,0)))}
 
+
 // ---------- загрузка и анализ ----------
+
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),res=document.getElementById('res'),drop=document.getElementById('drop'),file=document.getElementById('file');
 let last=null;
 function renderRes(){
@@ -497,10 +567,12 @@ async function analyze(img){
   d.forEach(b=>{const x=ox+b.x*w,y=oy+b.y*h,bw=b.w*w,bh=b.h*h,tx=`${t(b.type)} ${Math.round(b.conf*100)}%`;ctx.strokeStyle='#e5533d';ctx.strokeRect(x,y,bw,bh);ctx.fillStyle='#e5533d';ctx.fillRect(x,y-26,ctx.measureText(tx).width+14,26);ctx.fillStyle='#fff';ctx.fillText(tx,x+7,y-6)});
   const s=severity(d),types=[...new Set(d.map(b=>b.type))];
   last={l:lvl(s),s,n:d.length,types};renderRes();
-  // координаты: при наличии GPS/EXIF подставляются реальные; в демо — случайная точка на дороге
-  const p=onRoute(Math.floor(Math.random()*routes.length));
-  addItem({...p,score:s,types,isNew:true});render();
-  if(map){map.flyTo([p.lat,p.lng],11);const it=items.find(o=>o.isNew&&o.lat===p.lat);it&&setTimeout(()=>it.marker.openPopup(),1200)}
+
+
+  // координаты: при наличии GPS/EXIF подставляются реальные; в демо — случайная точка у населённого пункта
+  const q=TW[Math.floor(Math.random()*TW.length)];let x=q[1]*S,y=q[2]*S;
+  for(let i=0;i<40;i++){const nx=q[1]*S+(Math.random()-.5)*80,ny=q[2]*S+(Math.random()-.5)*80;if(inLand(nx/S,ny/S)){x=nx;y=ny;break}}
+  const no={town:q[0],x,y,score:s,types,isNew:true};addItem(no);render();select(no);
 }
 function load(f){const img=new Image();img.onload=()=>analyze(img);img.src=URL.createObjectURL(f)}
 file.onchange=()=>file.files[0]&&load(file.files[0]);
@@ -516,6 +588,18 @@ document.getElementById('sample').onclick=()=>{
   [[200,330,120,70],[520,300,90,50]].forEach(([x,y,w,h])=>{g.fillStyle='#14181b';g.beginPath();g.ellipse(x,y,w/2,h/2,.2,0,7);g.fill()});
   const img=new Image();img.onload=()=>analyze(img);img.src=c.toDataURL();
 };
+
+// ---------- Автопрокрутка очереди проверки ----------
+const qContainer = document.getElementById('q');
+setInterval(() => {
+  if (!qContainer) return;
+  if (qContainer.matches(':hover')) return; 
+  qContainer.scrollTop += 1;
+  if (qContainer.scrollTop + qContainer.clientHeight >= qContainer.scrollHeight - 2) {
+    qContainer.scrollTop = 0;
+  }
+}, 10); // скорость прокрутки
+
 applyLang('ru');
 </script>
 </body>
